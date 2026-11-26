@@ -12,7 +12,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.server.ResponseStatusException;
 
-@RestControllerAdvice(assignableTypes = {SubmissionController.class, CurationController.class})
+@RestControllerAdvice(assignableTypes = {SubmissionController.class, CurationController.class,
+        ExtractionController.class, PipelineController.class})
 public class SubmissionExceptionHandler {
     public record ErrorDto(String message) { }
 

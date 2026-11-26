@@ -28,7 +28,11 @@ function LocationSealSelect({ submissionId, occurrence }: { submissionId: number
       void queries.invalidateQueries({ queryKey: ["curation", "extraction", submissionId] });
       void queries.invalidateQueries({ queryKey: ["dashboard-occurrences"] });
     },
-    onError: (cause) => setError(cause instanceof ApiError ? cause.message : "Não foi possível salvar o selo."),
+    onError: (cause) => {
+      setError(cause instanceof ApiError ? cause.message : "Não foi possível salvar o selo.");
+      // Re-read the saved seal so the select does not keep showing the refused option.
+      void queries.invalidateQueries({ queryKey: ["curation", "extraction", submissionId] });
+    },
   });
   return (
     <label className="mt-2 block text-xs">
