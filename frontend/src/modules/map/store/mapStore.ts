@@ -178,7 +178,6 @@ export const useMapStore = create<MapStore>((set, get) => ({
     };
 
     set({ isLocating: true, locationError: null });
-    map.fire("userlocationstart");
     try {
       map.locate({ setView: false, timeout: LOCATE_TIMEOUT_MS });
     } catch {

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { SubmissionDetail } from "@/entities/submission/submission.types";
 import { ArticleDataView } from "./ArticleDataView";
 import { SubmissionStatusBadge } from "./SubmissionStatusBadge";
+import { CurationStamp } from "./CurationStamp";
 import { formatDate } from "./SubmissionTable";
 
 export function SubmissionOverview({ submission: s, pdfUrl, comparison }: { submission: SubmissionDetail; pdfUrl: string; comparison: boolean }) {
@@ -14,6 +15,7 @@ export function SubmissionOverview({ submission: s, pdfUrl, comparison }: { subm
           <CardTitle><h2 className="break-words text-xl">{s.title}</h2></CardTitle>
           <p className="text-sm text-muted-foreground">{s.submittedBy.name} · {formatDate(s.createdAt)}</p>
           <div><SubmissionStatusBadge status={s.status} /></div>
+          <CurationStamp status={s.status} submittedBy={s.submittedBy} reviewedBy={s.reviewedBy} reviewedAt={s.reviewedAt} />
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Button asChild><a href={s.originalLink} target="_blank" rel="noopener noreferrer">Abrir artigo original</a></Button>
@@ -37,7 +39,6 @@ export function SubmissionOverview({ submission: s, pdfUrl, comparison }: { subm
       {s.status !== "PENDING" && <Card>
         <CardHeader><CardTitle><h3>Resultado da curadoria</h3></CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <p>{s.reviewedBy?.name} · {formatDate(s.reviewedAt)}</p>
           {s.rejectionReason && <div><p className="font-medium">Motivo da reprovação</p><p className="whitespace-pre-wrap break-words">{s.rejectionReason}</p></div>}
           {s.curatedData && <ArticleDataView data={s.curatedData} />}
         </CardContent>

@@ -34,6 +34,11 @@ export function occurrenceCollectionToOccurrences(
   return collection?.features.map(occurrenceFeatureToOccurrence) ?? []
 }
 
+// Case- and accent-insensitive text: "Miíase" and "miiase" compare equal.
+function foldText(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+}
+
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -145,7 +150,7 @@ export function filterOccurrenceCollection(
 ): OccurrenceFeatureCollection | null {
   if (!collection) return null
 
-  const search = filters.search?.trim().toLowerCase()
+  const search = filters.search ? foldText(filters.search.trim()) : ""
   const features = collection.features.filter((feature) => {
     const properties = feature.properties
 
@@ -159,17 +164,16 @@ export function filterOccurrenceCollection(
       (!filters.articles?.length ||
         properties.articles.some((article) => filters.articles?.includes(article.id))) &&
       (!search ||
-        [
-          properties.city,
-          properties.state,
-          properties.disease,
-          properties.vector,
-          properties.parasite,
-          properties.host,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(search))
+        foldText(
+          [
+            properties.city,
+            properties.state,
+            properties.disease,
+            properties.vector,
+            properties.parasite,
+            properties.host,
+          ].join(" ")
+        ).includes(search))
     )
   })
 

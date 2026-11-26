@@ -149,7 +149,7 @@ public class SubmissionService {
                 s.getCreatedAt(), person(s.getUsuario()), person(s.getCurador()), s.getReviewedAt());
     }
 
-    private PersonDto person(Usuario user) { return user == null ? null : new PersonDto(user.getId(), user.getNome()); }
+    private PersonDto person(Usuario user) { return PersonDto.of(user); }
 
     private String contains(String input) {
         return "%" + input.strip().toLowerCase(Locale.ROOT).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";

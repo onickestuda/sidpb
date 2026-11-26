@@ -109,6 +109,7 @@ export function LeftSidebarFilters({
         <FilterSection
           key={section.key}
           title={section.title}
+          activeCount={section.selected.length}
         >
           {section.options.length === 0 ? (
             <p className="py-1 text-xs text-muted-foreground">

@@ -166,12 +166,13 @@ class SubmissionFlowIntegrationTest {
         assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
     }
 
-    @Test void deveBloquearAutoavaliacaoInclusiveParaCurador() {
+    @Test void devePermitirAutoavaliacaoDeCuradorECarimbarQuemCurou() {
         var own = submissions.create(new SubmissionRequestDto(curatorId(), "https://example.org", data("Próprio artigo")), pdf());
-        assertEquals(HttpStatus.FORBIDDEN, assertThrows(ResponseStatusException.class,
-            () -> curation.approve(own.id(), new ApproveRequestDto(curatorId(), data("Próprio artigo")))).getStatusCode());
-        assertEquals(HttpStatus.FORBIDDEN, assertThrows(ResponseStatusException.class,
-            () -> curation.reject(own.id(), new RejectRequestDto(curatorId(), "Revisão própria"))).getStatusCode());
+        var approved = curation.approve(own.id(), new ApproveRequestDto(curatorId(), data("Próprio artigo")));
+        assertEquals(SubmissaoStatus.APPROVED, approved.status());
+        assertEquals(approved.submittedBy().id(), approved.reviewedBy().id());
+        assertEquals(approved.submittedBy().code(), approved.reviewedBy().code());
+        assertTrue(approved.reviewedBy().code().matches("[0-9A-F]{6}"));
     }
 
     private SubmissionDetailDto create(String title) { return submissions.create(request(title), pdf()); }

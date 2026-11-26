@@ -18,7 +18,8 @@ export interface ArticleData {
   notes: string | null;
 }
 
-export interface SubmissionPerson { id: number; name: string; }
+// code: public 6-hex identifier from the API (never the e-mail); shown as CUR-XXXXXX in curation stamps.
+export interface SubmissionPerson { id: number; name: string; code?: string | null; }
 
 export interface SubmissionSummary {
   id: number;

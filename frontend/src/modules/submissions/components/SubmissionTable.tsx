@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { curatorCode, isSelfReview } from "./CurationStamp";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { SubmissionPage } from "@/entities/submission/submission.types";
@@ -31,7 +32,7 @@ export function SubmissionTable({ data, mode, onPage, isFetching }: {
               <TableCell>{formatDate(item.createdAt)}</TableCell>
               {mode === "curator" && <TableCell>{item.submittedBy.name}</TableCell>}
               <TableCell><SubmissionStatusBadge status={item.status} /></TableCell>
-              {mode === "curator" && <><TableCell>{item.reviewedBy?.name ?? "—"}</TableCell><TableCell>{formatDate(item.reviewedAt)}</TableCell></>}
+              {mode === "curator" && <><TableCell>{item.reviewedBy ? <>{item.reviewedBy.name}{curatorCode(item.reviewedBy) && <span className="block font-mono text-xs text-muted-foreground">{curatorCode(item.reviewedBy)}{isSelfReview(item.submittedBy, item.reviewedBy) && " · autoavaliação"}</span>}</> : "—"}</TableCell><TableCell>{formatDate(item.reviewedAt)}</TableCell></>}
             </TableRow>
           ))}</TableBody>
         </Table>

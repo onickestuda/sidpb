@@ -46,10 +46,8 @@ public class CurationService {
 
     private SubmissaoArtigo pending(Integer id, Integer curatorId) {
         SubmissaoArtigo submission = submissions.find(id);
-        // Pending business decision: fail closed for self-review, including administrators.
-        if (submission.getUsuario().getId().equals(curatorId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "A avaliação deve ser realizada por outro curador.");
-        }
+        // Self-review is allowed: /api/curation already requires CURATOR (ADMIN inherits it).
+        // The decision is stamped with the curator (name + public code) and flagged as self-review in the UI.
         if (submission.getStatus() != SubmissaoStatus.PENDING) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta submissão já recebeu uma decisão. Atualize a fila.");
         }

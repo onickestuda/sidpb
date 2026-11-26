@@ -146,63 +146,58 @@ function createMap(zoom = MIN_ZOOM) {
 
 function mountUserMarker(map) {
   const markers = [];
+  const circles = [];
   const cleanups = [];
+  const layer = (kind, latlng, settings) => ({
+    kind, latlng, settings, radius: settings?.radius,
+    setLatLng(next) { this.latlng = next; return this; },
+    setRadius(next) { this.radius = next; return this; },
+    addTo(target) { target.layers.add(this); return this; },
+    remove() { map.layers.delete(this); },
+  });
   const leaflet = {
-    divIcon: (settings) => settings,
-    marker: (latlng, settings) => {
-      const classes = new Set();
-      const element = { classList: {
-        add: (name) => classes.add(name), remove: (name) => classes.delete(name), contains: (name) => classes.has(name),
-      } };
-      const marker = {
-        latlng, settings,
-        getElement: () => element,
-        setLatLng(next) { this.latlng = next; return this; },
-        bindTooltip(text) { this.tooltip = text; return this; },
-        addTo(target) { target.layers.add(this); return this; },
-        remove() { map.layers.delete(this); },
-      };
-      markers.push(marker);
-      return marker;
-    },
+    icon: (settings) => settings,
+    marker: (latlng, settings) => { const marker = layer('marker', latlng, settings); markers.push(marker); return marker; },
+    circle: (latlng, settings) => { const circle = layer('circle', latlng, settings); circles.push(circle); return circle; },
   };
   const { UserLocationMarker } = loadComponent('modules/map/components/LeafletMap/UserLocationMarker.tsx', {
     leaflet,
     react: { useRef: () => ({ current: null }), useEffect: (effect) => cleanups.push(effect()) },
     'react-leaflet': { useMap: () => map },
-    './UserLocationMarker.module.css': { marker: 'user-marker', pin: 'user-pin', fading: 'user-fading' },
+    '@/lib/publicConfig': { basePath: '/sidpb' },
   });
   UserLocationMarker();
-  return { markers, unmount: () => cleanups.forEach((cleanup) => cleanup()) };
+  return { markers, circles, unmount: () => cleanups.forEach((cleanup) => cleanup()) };
 }
 
-test('location creates one independent red pin before flyTo, reuses it, and flies to MAX_ZOOM', () => {
+test('location places one violet pin with accuracy circle before flying to MAX_ZOOM, and reuses it', () => {
   for (const zoom of [4, 10, 12, MAX_ZOOM]) {
     const map = createMap(zoom);
-    const { markers, unmount } = mountUserMarker(map);
+    const { markers, circles, unmount } = mountUserMarker(map);
     const occurrences = useMapStore.getState().selectedOccurrences;
-    for (const latlng of [{ lat: -2, lng: -44 }, { lat: -3, lng: -45 }, { lat: -4, lng: -46 }]) {
+    for (const [latlng, accuracy] of [[{ lat: -2, lng: -44 }, 30], [{ lat: -3, lng: -45 }, 12], [{ lat: -4, lng: -46 }, undefined]]) {
       useMapStore.getState().locateUser();
       assert.equal(useMapStore.getState().isLocating, true);
       assert.deepEqual(map.locateCalls.at(-1), { setView: false, timeout: 10000 });
-      map.emit('locationfound', { latlng });
+      map.emit('locationfound', { latlng, accuracy });
       assert.equal(markers.length, 1);
-      assert.equal(map.layers.size, 1);
+      assert.equal(circles.length, 1);
+      assert.equal(map.layers.size, 2, 'pin + accuracy circle');
       assert.equal(markers[0].latlng, latlng);
-      assert.equal(markers[0].tooltip, undefined);
-      assert.equal(markers[0].settings.title, undefined);
-      assert.equal(markers[0].settings.alt, 'Localização do usuário');
+      assert.equal(circles[0].latlng, latlng);
+      assert.equal(circles[0].radius ?? 0, accuracy ?? 0);
+      assert.equal(markers[0].settings.alt, 'Sua localização');
       assert.equal(markers[0].settings.interactive, false);
       assert.equal(markers[0].settings.keyboard, false);
-      assert.match(markers[0].settings.icon.html, /<svg/);
-      assert.match(markers[0].settings.icon.html, /fill="#ea4335"/);
-      assert.deepEqual(markers[0].settings.icon.iconSize, [24, 32]);
+      assert.match(markers[0].settings.icon.iconUrl, /^\/sidpb\/map\/location-marker\/marker-icon-violet\.png$/);
+      assert.match(markers[0].settings.icon.iconRetinaUrl, /marker-icon-2x-violet\.png$/);
+      assert.deepEqual(markers[0].settings.icon.iconSize, [25, 41]);
       assert.deepEqual(map.flights.at(-1), {
         latlng, zoom: MAX_ZOOM, settings: { animate: true, duration: 1.5 }, markerPosition: latlng,
       });
       assert.equal(useMapStore.getState().isLocating, false);
-      assert.equal(map.listenerCount('locationerror'), 1, 'Only the local marker listener remains');
-      assert.equal(map.listenerCount('unload'), 1, 'Only the local marker listener remains');
+      assert.equal(map.listenerCount('locationerror'), 0, 'request listeners are detached after success');
+      assert.equal(map.listenerCount('locationfound'), 1, 'only the marker listener remains');
       assert.equal(useMapStore.getState().selectedOccurrences, occurrences);
     }
     unmount();
@@ -211,7 +206,21 @@ test('location creates one independent red pin before flyTo, reuses it, and flie
   }
 });
 
-test('pending requests are deduplicated; errors restore the button and allow a successful retry', () => {
+test('the position stays on the map: camera moves and time never remove it', (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const map = createMap();
+  const { unmount } = mountUserMarker(map);
+  useMapStore.getState().locateUser();
+  map.emit('locationfound', { latlng: { lat: -2, lng: -44 }, accuracy: 20 });
+  map.emit('moveend');
+  map.emit('movestart');
+  map.emit('moveend');
+  t.mock.timers.tick(60 * 60 * 1000);
+  assert.equal(map.layers.size, 2);
+  unmount();
+});
+
+test('pending requests are deduplicated; errors restore the button and keep the last position', () => {
   for (const [code, message] of [[1, /Permissão/], [2, /Não foi possível/], [3, /esgotou/], [0, /navegador/]]) {
     const map = createMap();
     const { markers, unmount } = mountUserMarker(map);
@@ -223,17 +232,16 @@ test('pending requests are deduplicated; errors restore the button and allow a s
     assert.match(useMapStore.getState().locationError, message);
     assert.equal(map.flights.length, 0);
     assert.equal(markers.length, 0);
-    assert.equal(map.listenerCount('locationerror'), 1);
+    assert.equal(map.listenerCount('locationerror'), 0);
     useMapStore.getState().locateUser();
     assert.equal(useMapStore.getState().locationError, null);
     map.emit('locationfound', { latlng: { lat: -2, lng: -44 } });
     assert.equal(markers.length, 1);
     assert.equal(map.flights.length, 1);
-    // A later failed attempt preserves the previously obtained marker and camera.
+    // A later failed attempt preserves the previously obtained position and camera.
     useMapStore.getState().locateUser();
     map.emit('locationerror', { code });
-    assert.equal(markers.length, 1);
-    assert.equal(map.layers.size, 1);
+    assert.equal(map.layers.size, 2);
     assert.equal(map.flights.length, 1);
     unmount();
   }
@@ -259,143 +267,23 @@ test('missing maps, synchronous geolocation failures, and unmount during a reque
   assert.equal(map.listenerCount('locationerror'), 0);
 });
 
-test('the pin stays visible throughout the flight, waits 5s after moveend, and fades before removal', (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
-  const map = createMap();
-  const { markers, unmount } = mountUserMarker(map);
-  useMapStore.getState().locateUser();
-  map.emit('locationfound', { latlng: { lat: -2, lng: -44 } });
-  t.mock.timers.tick(10000);
-  assert.equal(map.layers.size, 1, 'No expiry timer runs during the flight');
-  assert.equal(map.listenerCount('moveend'), 1);
-  map.emit('moveend');
-  assert.equal(map.listenerCount('moveend'), 0);
-  t.mock.timers.tick(4999);
-  assert.equal(markers[0].getElement().classList.contains('user-fading'), false);
-  map.emit('moveend'); // Unrelated camera events must not reset or duplicate the timer.
-  t.mock.timers.tick(1);
-  assert.equal(markers[0].getElement().classList.contains('user-fading'), true);
-  assert.equal(map.layers.size, 1, 'The pin remains attached during its fade');
-  t.mock.timers.tick(299);
-  assert.equal(map.layers.size, 1);
-  t.mock.timers.tick(1);
-  assert.equal(map.layers.size, 0);
-  useMapStore.getState().locateUser();
-  map.emit('locationfound', { latlng: { lat: -3, lng: -45 } });
-  assert.equal(markers.length, 1, 'The same marker can reappear even after removal');
-  assert.equal(markers[0].getElement().classList.contains('user-fading'), false);
-  unmount();
-});
-
-test('a repeated click cancels expiry immediately, reuses the pin, and waits for the new flight', (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
-  const map = createMap();
-  const { markers, unmount } = mountUserMarker(map);
-  useMapStore.getState().locateUser();
-  map.emit('locationfound', { latlng: { lat: -2, lng: -44 } });
-  map.emit('moveend');
-  t.mock.timers.tick(4500);
-  useMapStore.getState().locateUser();
-  t.mock.timers.tick(6000); // Geolocation may take longer than the old marker lifetime.
-  assert.equal(map.layers.size, 1);
-  assert.equal(markers[0].getElement().classList.contains('user-fading'), false);
-  const next = { lat: -3, lng: -45 };
-  map.emit('locationfound', { latlng: next });
-  assert.equal(markers.length, 1);
-  assert.equal(markers[0].latlng, next);
-  assert.equal(map.listenerCount('moveend'), 1);
-  t.mock.timers.tick(6000);
-  assert.equal(map.layers.size, 1);
-  map.emit('moveend');
-  t.mock.timers.tick(5000);
-  assert.equal(markers[0].getElement().classList.contains('user-fading'), true);
-  t.mock.timers.tick(300);
-  assert.equal(map.layers.size, 0);
-  unmount();
-});
-
-test('a click during fade cancels removal and restores the existing pin', (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
-  const map = createMap();
-  const { markers, unmount } = mountUserMarker(map);
-  useMapStore.getState().locateUser();
-  map.emit('locationfound', { latlng: { lat: -2, lng: -44 } });
-  map.emit('moveend');
-  t.mock.timers.tick(5000);
-  assert.equal(markers[0].getElement().classList.contains('user-fading'), true);
-  useMapStore.getState().locateUser();
-  assert.equal(markers[0].getElement().classList.contains('user-fading'), false);
-  t.mock.timers.tick(1000);
-  assert.equal(map.layers.size, 1);
-  map.emit('locationfound', { latlng: { lat: -3, lng: -45 } });
-  assert.equal(markers.length, 1);
-  unmount();
-});
-
-test('the previous pan ending before the new flyTo starts does not start expiry', (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
-  const map = createMap();
-  const { unmount } = mountUserMarker(map);
-  map.flyTo = () => {
-    map.emit('moveend'); // Leaflet flyTo stops a previous pan before firing movestart.
-    map.emit('movestart');
-  };
-  useMapStore.getState().locateUser();
-  map.emit('locationfound', { latlng: { lat: -2, lng: -44 } });
-  t.mock.timers.tick(6000);
-  assert.equal(map.layers.size, 1);
-  map.emit('moveend');
-  t.mock.timers.tick(5000);
-  t.mock.timers.tick(300);
-  assert.equal(map.layers.size, 0);
-  unmount();
-});
-
-test('unmount and map destruction cancel every lifetime stage and leave no listeners or callbacks', (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
-  for (const stage of ['request', 'flight', 'visible', 'fade']) {
+test('unmount and map destruction remove the pin, the circle and every listener', () => {
+  for (const stage of ['request', 'found']) {
     for (const destroy of [false, true]) {
       const map = createMap();
-      const { markers, unmount } = mountUserMarker(map);
+      const { unmount } = mountUserMarker(map);
       useMapStore.getState().locateUser();
-      if (stage !== 'request') map.emit('locationfound', { latlng: { lat: -2, lng: -44 } });
-      if (stage === 'visible' || stage === 'fade') map.emit('moveend');
-      if (stage === 'fade') t.mock.timers.tick(5000);
+      if (stage === 'found') map.emit('locationfound', { latlng: { lat: -2, lng: -44 }, accuracy: 10 });
       if (destroy) map.emit('unload');
       unmount();
-      // Pending geolocation listeners belong to the store and are cleared by map unload.
       if (!destroy) map.emit('unload');
       assert.equal(map.layers.size, 0);
       assert.deepEqual(map.eventNames(), [], `${stage}: all map listeners removed`);
-      let residualCallbacks = 0;
-      for (const marker of markers) {
-        marker.remove = () => { residualCallbacks++; };
-        marker.getElement = () => { residualCallbacks++; return undefined; };
-      }
-      t.mock.timers.tick(20000);
-      map.emit('moveend');
-      map.emit('locationfound', { latlng: { lat: 0, lng: 0 } });
-      assert.equal(residualCallbacks, 0);
     }
   }
 });
 
-test('a failed retry still lets a previous marker expire', (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
-  const map = createMap();
-  const { unmount } = mountUserMarker(map);
-  useMapStore.getState().locateUser();
-  map.emit('locationfound', { latlng: { lat: -2, lng: -44 } });
-  map.emit('moveend');
-  useMapStore.getState().locateUser();
-  map.emit('locationerror', { code: 1 });
-  t.mock.timers.tick(5000);
-  t.mock.timers.tick(300);
-  assert.equal(map.layers.size, 0);
-  unmount();
-});
-
-test('the existing zoomend tracker switches satellite above 4 for any zoom origin without loops', () => {
+test('zoom tracking never switches the base layer on its own', () => {
   const map = createMap();
   const cleanups = [];
   const { MapZoomTracker } = loadComponent('modules/map/components/LeafletMap/MapZoomTracker.tsx', {
@@ -409,30 +297,13 @@ test('the existing zoomend tracker switches satellite above 4 for any zoom origi
   MapZoomTracker({ onZoomChange: useMapStore.getState().setCurrentZoom });
   assert.equal(map.listenerCount('zoomend'), 1);
   useMapStore.getState().toggleMapView();
-  map.setZoom(4);
-  assert.equal(useMapStore.getState().mapView, 'satellite');
-  map.setZoom(5);
-  assert.equal(useMapStore.getState().mapView, 'street');
-  let notifications = 0;
-  const unsubscribe = useMapStore.subscribe(() => { notifications++; });
-  map.setZoom(5);
-  assert.equal(notifications, 0, 'The same zoom on street does not trigger another render');
-  map.setZoom(6);
-  assert.equal(useMapStore.getState().mapView, 'street');
-  assert.equal(notifications, 1);
-  map.setZoom(4);
-  assert.equal(useMapStore.getState().mapView, 'street', 'Zooming out does not automatically restore satellite');
+  for (const zoom of [4, 5, 12, MAX_ZOOM, 4]) {
+    map.setZoom(zoom);
+    assert.equal(useMapStore.getState().currentZoom, zoom);
+    assert.equal(useMapStore.getState().mapView, 'satellite', 'satellite stays until the user turns it off');
+  }
   useMapStore.getState().toggleMapView();
-  assert.equal(useMapStore.getState().mapView, 'satellite', 'Manual toggle remains available');
-  const { unmount } = mountUserMarker(map);
-  useMapStore.getState().locateUser();
-  map.emit('locationfound', { latlng: { lat: -2, lng: -44 } });
-  map.setZoom(MAX_ZOOM);
-  assert.equal(useMapStore.getState().mapView, 'street', 'The same rule applies to the Locate flight');
-  assert.equal(map.flights.at(-1).zoom, MAX_ZOOM);
-  assert.equal(map.listenerCount('zoomend'), 1);
-  unmount();
-  unsubscribe();
+  assert.equal(useMapStore.getState().mapView, 'street');
   cleanups.forEach((cleanup) => cleanup());
   assert.equal(map.listenerCount('zoomend'), 0);
 });
