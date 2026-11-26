@@ -23,7 +23,7 @@ prof. dr. Lívio Costa (UFMA).
 
 ```
 .
-├── docker-compose.yaml     # todos os serviços (db, api, frontend, keycloak, cargas)
+├── docker-compose.yaml     # projeto "sidpb-completo": db, keycloak, api, frontend e jobs avulsos
 ├── .env.example            # modelo único de configuração (copie para .env)
 ├── backend/                # API Spring Boot
 │   └── src/main/
@@ -39,10 +39,10 @@ prof. dr. Lívio Costa (UFMA).
 │   │   └── server/auth/    # sessão OIDC no servidor
 │   └── tests/              # testes unitários e e2e
 ├── infra/
-│   ├── database/
+│   ├── database/           # Dockerfile do banco (PostgreSQL + PostGIS)
 │   │   ├── ibge/           # carga da base geográfica (shapefiles não versionados)
 │   │   └── seed/           # dados de teste de miíase
-│   └── keycloak/           # realm, tema de login e scripts de configuração
+│   └── keycloak/           # Dockerfile do Keycloak, realm, temas e scripts de configuração
 └── docs/                   # documentação (ver abaixo)
 ```
 
@@ -52,8 +52,26 @@ Pré-requisito: Docker Desktop.
 
 ```bash
 cp .env.example .env                       # preencha senhas e segredos
-docker compose --profile auth up -d        # banco, Keycloak, API e frontend
+docker compose up -d --build               # sobe o sidpb-completo (as 4 partições)
 ```
+
+Cada partição tem seu Dockerfile e seu container, agrupados como **sidpb-completo** no Docker Desktop:
+
+| Serviço | Dockerfile | Container | Porta |
+|---|---|---|---|
+| db | `infra/database/Dockerfile` | `sidpb_db` | 5432 |
+| keycloak | `infra/keycloak/Dockerfile` | `sidpb_keycloak` | 8081 |
+| api | `backend/Dockerfile` | `sidpb_api` | 8080 |
+| frontend | `frontend/Dockerfile` | `sidpb_frontend` | 7080 |
+
+A ordem é garantida por healthchecks: db → keycloak-db-init (cria o usuário do Keycloak no banco) →
+keycloak → api → frontend. A primeira subida leva alguns minutos (build das imagens e import do realm).
+Realm e temas ficam dentro da imagem do Keycloak: depois de mudar `infra/keycloak/themes` ou o realm,
+rode `docker compose up -d --build keycloak`.
+
+Para parar: `docker compose stop` (os dados ficam nos volumes `sidpb-completo_*`). Para reaproveitar
+os volumes de outra instalação, defina `SIDPB_DB_VOLUME`, `SIDPB_SUBMISSIONS_VOLUME` e
+`SIDPB_AUTH_SESSIONS_VOLUME` no `.env`, com a outra instalação parada.
 
 - Aplicação: http://localhost:7080/sidpb/
 - API: http://localhost:8080

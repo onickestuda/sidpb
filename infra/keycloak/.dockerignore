@@ -1,0 +1,4 @@
+# Só o realm e os temas entram na imagem; scripts de configuração e testes ficam de fora.
+*
+!sidpb-realm.json
+!themes/sidpb/**
