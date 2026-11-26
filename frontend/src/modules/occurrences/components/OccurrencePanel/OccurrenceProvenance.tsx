@@ -1,9 +1,9 @@
-import { CircleHelp, MapPinned } from "lucide-react";
+import { CircleHelp, MapPinOff, MapPinned, MapPin, type LucideIcon } from "lucide-react";
 import type { Occurrence } from "@/entities/occurrence/occurrence.types";
 
 type ProvenanceOccurrence = Pick<Occurrence, "curation" | "locationPrecision" | "extractionModel" | "extras" | "state" | "city">;
 
-/** Location seal, shared with the curator form. EXATA needs no warning. */
+/** Full location seal texts, used by the curator's select and as badge tooltips. */
 export const LOCATION_SEALS: Record<Occurrence["locationPrecision"], string> = {
   EXATA: "Localização exata",
   MUNICIPIO: "Localização aproximada, sem coordenadas exatas",
@@ -11,23 +11,49 @@ export const LOCATION_SEALS: Record<Occurrence["locationPrecision"], string> = {
   SEM_LOCAL: "Sem local confirmado",
 };
 
+interface SealBadge {
+  id: string;
+  label: string;
+  tooltip: string;
+  icon: LucideIcon;
+  tone: string;
+}
+
 /**
- * Warnings about how far the occurrence can be trusted, in one amber block: not curated yet and/or
- * imprecise location. The location seal stays after curation (the street may never be known).
+ * Exception badges: only what calls for caution is shown, so curated occurrences with an exact location
+ * stay clean. To add a new badge, add one rule here; the layout does not change.
  */
+const SEAL_RULES: ((occurrence: ProvenanceOccurrence) => SealBadge | null)[] = [
+  (occurrence) => occurrence.curation === "NAO_CURADA" ? {
+    id: "nao-curada", label: "Não curada", icon: CircleHelp,
+    tooltip: "Extraída automaticamente e ainda não verificada por um curador.",
+    tone: "border-amber-300 bg-amber-50 text-amber-900",
+  } : null,
+  (occurrence) => ({
+    EXATA: null,
+    MUNICIPIO: { id: "loc-aproximada", label: "Loc. aproximada", icon: MapPinned, tooltip: LOCATION_SEALS.MUNICIPIO,
+      tone: "border-blue-300 bg-blue-50 text-blue-900" },
+    ESTADO: { id: "so-estado", label: "Só estado", icon: MapPin, tooltip: LOCATION_SEALS.ESTADO,
+      tone: "border-sky-300 bg-sky-50 text-sky-900" },
+    SEM_LOCAL: { id: "sem-local", label: "Sem local", icon: MapPinOff, tooltip: LOCATION_SEALS.SEM_LOCAL,
+      tone: "border-slate-300 bg-slate-100 text-slate-700" },
+  } satisfies Record<Occurrence["locationPrecision"], SealBadge | null>)[occurrence.locationPrecision],
+];
+
+/** Mini badges side by side (curation, location precision...) on every occurrence card. */
 export function OccurrenceCurationNote({ occurrence }: { occurrence: ProvenanceOccurrence }) {
-  const notCurated = occurrence.curation === "NAO_CURADA";
-  const imprecise = occurrence.locationPrecision !== "EXATA";
-  if (!notCurated && !imprecise) return null;
+  const badges = SEAL_RULES.map((rule) => rule(occurrence)).filter((badge): badge is SealBadge => badge !== null);
+  if (badges.length === 0) return null;
   return (
-    <div className="inline-flex flex-col gap-0.5 border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900">
-      {notCurated && <span className="inline-flex items-center gap-1.5"><CircleHelp className="size-3.5 shrink-0" aria-hidden />Não curada</span>}
-      {imprecise && (
-        <span className="inline-flex items-center gap-1.5">
-          <MapPinned className="size-3.5 shrink-0" aria-hidden />{LOCATION_SEALS[occurrence.locationPrecision]}
-        </span>
-      )}
-    </div>
+    <ul className="flex flex-wrap gap-1.5" aria-label="Selos da ocorrência">
+      {badges.map(({ id, label, tooltip, icon: Icon, tone }) => (
+        <li key={id} title={tooltip}
+          className={`inline-flex items-center gap-1 rounded-[2px] border px-1.5 py-0.5 text-[11px] font-medium leading-tight ${tone}`}>
+          <Icon className="size-3 shrink-0" aria-hidden />{label}
+          <span className="sr-only">: {tooltip}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

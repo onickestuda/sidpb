@@ -9,7 +9,7 @@ import type { UserRole } from "@/entities/user/user.types";
 import { RoleGuard } from "./RoleGuard";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 
-export function ProfileLayout({ role, title, children, showIdentity = true }: { role: UserRole; title: string; children: ReactNode; showIdentity?: boolean }) {
+export function ProfileLayout({ role, title, children, showIdentity = true, wide = false }: { role: UserRole; title: string; children: ReactNode; showIdentity?: boolean; wide?: boolean }) {
   const { user, logout } = useAuth();
 
   return (
@@ -17,7 +17,7 @@ export function ProfileLayout({ role, title, children, showIdentity = true }: { 
       <div className="min-h-svh bg-background">
         <AppHeader />
         <main>
-          <PageContainer className="space-y-8 py-8">
+          <PageContainer className={wide ? "max-w-[1600px]! space-y-8 py-8" : "space-y-8 py-8"}>
             <header className="flex flex-wrap items-start justify-between gap-4 border-b pb-6">
               <div className="space-y-1">
                 <h1 className="text-2xl font-semibold">{title}</h1>

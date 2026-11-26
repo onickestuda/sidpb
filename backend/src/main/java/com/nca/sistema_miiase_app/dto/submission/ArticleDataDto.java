@@ -25,5 +25,24 @@ public record ArticleDataDto(
         @DecimalMin("-90") @DecimalMax("90") BigDecimal latitude,
         @DecimalMin("-180") @DecimalMax("180") BigDecimal longitude,
         @Size(max = 200) String source,
-        @Size(max = 4000) String notes
-) { }
+        @Size(max = 4000) String notes,
+        // Occurrences suggested by the submitter. Older rows keep the single occurrence in the root
+        // fields above (disease ... longitude) and have no list: both formats stay readable.
+        @Size(max = 50) java.util.List<@jakarta.validation.Valid UserOccurrenceDto> occurrences
+) {
+    public ArticleDataDto(String title, List<String> authors, Integer year, String doi, String disease, String parasite,
+                          String vector, String host, String state, String municipality, BigDecimal latitude,
+                          BigDecimal longitude, String source, String notes) {
+        this(title, authors, year, doi, disease, parasite, vector, host, state, municipality, latitude, longitude, source, notes, null);
+    }
+
+    /** Disease of the first suggested occurrence, falling back to the legacy root field. */
+    public String firstDisease() {
+        if (occurrences != null) {
+            for (UserOccurrenceDto occurrence : occurrences) {
+                if (occurrence != null && occurrence.disease() != null && !occurrence.disease().isBlank()) return occurrence.disease().strip();
+            }
+        }
+        return disease == null || disease.isBlank() ? null : disease.strip();
+    }
+}

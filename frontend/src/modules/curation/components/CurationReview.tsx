@@ -17,8 +17,9 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { SubmissionOverview } from "@/modules/submissions/components/SubmissionOverview";
 import { ARTICLE_ONLY_FIELDS, ArticleFields, EMPTY_ARTICLE, articleToForm, formToArticle, type ArticleFormValues } from "@/modules/submissions/components/ArticleFields";
 import { curationService } from "../services/curation.service";
-import { ExtractionSummary } from "./ExtractionSummary";
-import { OccurrenceCuration, draftFromExtraction, draftFromUserData, draftToCurated, type OccurrenceDraft } from "./OccurrenceCuration";
+import { OccurrenceCuration } from "./OccurrenceCuration";
+import { draftFromExtraction, draftFromUser, draftToCurated, type OccurrenceDraft } from "@/modules/submissions/components/OccurrenceDraftForm";
+import { userOccurrences } from "@/entities/submission/submission.types";
 import { ApiError } from "@/lib/apiClient";
 
 export function CurationReview({ id }: { id: number }) {
@@ -41,7 +42,8 @@ export function CurationReview({ id }: { id: number }) {
   useEffect(() => {
     if (drafts !== null || !query.data || extraction.isPending) return;
     const found = extraction.data;
-    setDrafts(found ? found.occurrences.map(draftFromExtraction) : [draftFromUserData(query.data.userData)]);
+    // Start the curator's column from the extraction when there is one, otherwise from the user's suggestions.
+    setDrafts(found?.occurrences.length ? found.occurrences.map(draftFromExtraction) : userOccurrences(query.data.userData).map(draftFromUser));
   }, [drafts, query.data, extraction.isPending, extraction.data]);
 
   const mutation = useMutation({
@@ -71,14 +73,13 @@ export function CurationReview({ id }: { id: number }) {
   }
 
   const count = drafts?.length ?? 0;
-  const hasExtraction = Boolean(extraction.data);
 
   return <div className="space-y-6">
     <Button asChild variant="outline"><Link href="/curador">Voltar para a fila</Link></Button>
     {query.isPending && <p role="status">Carregando artigo...</p>}
     {query.isError && <p role="alert" className="text-destructive">Não foi possível abrir esta submissão.</p>}
     {query.data && <>
-      <SubmissionOverview submission={query.data} pdfUrl={curationService.pdfUrl(id)} comparison={!hasExtraction} />
+      <SubmissionOverview submission={query.data} pdfUrl={curationService.pdfUrl(id)} showSuggestions={false} />
       {query.data.status === "PENDING" && <Card>
         <CardHeader><CardTitle><h3>Decisão de curadoria</h3></CardTitle></CardHeader>
         <CardContent>
@@ -92,14 +93,15 @@ export function CurationReview({ id }: { id: number }) {
               <div className="space-y-1">
                 <h4 id="curation-occurrences" className="font-semibold">Ocorrências</h4>
                 <p className="text-sm text-muted-foreground">
-                  Só as ocorrências confirmadas nos formulários ficam no sistema e no mapa; as da extração automática são substituídas.
+                  Compare a sugestão do usuário e a extração automática; só as ocorrências da coluna do curador ficam no sistema e no mapa.
                 </p>
               </div>
-              {extraction.data && <ExtractionSummary extraction={extraction.data} />}
               {extraction.isError && <p role="alert" className="text-sm text-destructive">Não foi possível carregar a extração automática.</p>}
               {drafts === null
                 ? <p role="status">Carregando ocorrências...</p>
-                : <OccurrenceCuration extracted={extraction.data?.occurrences ?? []} drafts={drafts} onChange={setDrafts} disabled={mutation.isPending} />}
+                : <OccurrenceCuration
+                    userSuggestions={query.data.origin === "EXTRACAO" ? null : userOccurrences(query.data.userData)}
+                    extraction={extraction.data ?? null} drafts={drafts} onChange={setDrafts} disabled={mutation.isPending} />}
             </section>
 
             <div className="space-y-2">

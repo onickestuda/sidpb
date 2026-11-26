@@ -74,7 +74,7 @@ public class SubmissionService {
         submission.setPdfTamanho(pdf.getSize());
         submission.setDadosUsuario(request.userData());
         submission.setAno(request.userData().year());
-        submission.setDoenca(request.userData().disease());
+        submission.setDoenca(request.userData().firstDisease());
         submission.setPdfSha256(sha256(pdf));
         if (pipelineMode) {
             // The real extraction runs in the pipeline worker, which claims this submission from the queue.
@@ -162,6 +162,16 @@ public class SubmissionService {
     }
 
     public static void validateCoordinates(ArticleDataDto data) {
+        if (data.occurrences() != null) {
+            int index = 0;
+            for (var occurrence : data.occurrences()) {
+                index++;
+                if (occurrence != null && (occurrence.latitude() == null) != (occurrence.longitude() == null)) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Ocorrência " + index + ": informe latitude e longitude juntas ou deixe ambas vazias.");
+                }
+            }
+        }
         if ((data.latitude() == null) != (data.longitude() == null)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe latitude e longitude juntas ou deixe ambas vazias.");
         }

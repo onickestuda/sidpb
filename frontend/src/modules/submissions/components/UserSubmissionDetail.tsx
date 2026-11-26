@@ -16,6 +16,6 @@ export function UserSubmissionDetail({ id }: { id: number }) {
     <Button asChild variant="outline"><Link href="/usuario">Voltar às minhas submissões</Link></Button>
     {query.isPending && <p role="status">Carregando submissão...</p>}
     {query.isError && <p role="alert" className="text-destructive">Não foi possível abrir esta submissão. Confira se ela pertence ao seu usuário.</p>}
-    {query.data && <SubmissionOverview submission={query.data} pdfUrl={submissionsService.pdfUrl(id, user!.id)} comparison={false} />}
+    {query.data && <SubmissionOverview submission={query.data} pdfUrl={submissionsService.pdfUrl(id, user!.id)} showSuggestions />}
   </div>;
 }

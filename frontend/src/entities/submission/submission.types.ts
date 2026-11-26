@@ -16,6 +16,30 @@ export interface ArticleData {
   longitude: number | null;
   source: string | null;
   notes: string | null;
+  /**
+   * Occurrences suggested by the submitter. Older submissions have no list and keep a single
+   * occurrence in the root fields (disease ... longitude); read both with userOccurrences().
+   */
+  occurrences?: UserOccurrence[] | null;
+}
+
+/** One occurrence suggested by the submitter; every field is optional. */
+export interface UserOccurrence {
+  disease: string | null; parasite: string | null; vector: string | null; host: string | null; hostCategory: string | null;
+  year: number | null; state: string | null; municipality: string | null; latitude: number | null; longitude: number | null;
+  notes: string | null;
+}
+
+/** Suggested occurrences in either format (list, or the legacy single occurrence in the root fields). */
+export function userOccurrences(data: ArticleData | null | undefined): UserOccurrence[] {
+  if (!data) return [];
+  if (data.occurrences) return data.occurrences;
+  const legacy: UserOccurrence = {
+    disease: data.disease, parasite: data.parasite, vector: data.vector, host: data.host, hostCategory: null,
+    year: null, state: data.state, municipality: data.municipality, latitude: data.latitude, longitude: data.longitude, notes: null,
+  };
+  const filled = Object.values(legacy).some((value) => value !== null && value !== "");
+  return filled ? [legacy] : [];
 }
 
 // code: public 6-hex identifier from the API (never the e-mail); shown as CUR-XXXXXX in curation stamps.
