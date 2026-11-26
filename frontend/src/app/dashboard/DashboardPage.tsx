@@ -42,8 +42,8 @@ export default function DashboardPage() {
     occurrences &&
     occurrences.features.length === 0
       ? invalidCoordinatesCount > 0
-        ? "As ocorrencias foram retornadas, mas nenhuma possui coordenadas validas para o mapa."
-        : "Nenhuma ocorrencia encontrada para os filtros atuais."
+        ? "As ocorrências foram encontradas, mas nenhuma possui coordenadas válidas para o mapa."
+        : "Nenhuma ocorrência encontrada para os filtros atuais."
       : undefined;
 
   return (

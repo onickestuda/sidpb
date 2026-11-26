@@ -47,18 +47,20 @@ try {
     console.log('Required actions:', JSON.stringify((await api('GET', '/authentication/required-actions'))
       .map(({ alias, enabled, defaultAction }) => ({ alias, enabled, defaultAction }))));
   } else if (process.argv.includes('--activate-theme') || process.argv.includes('--deactivate-theme')) {
+    // Same SIDPB theme for the login pages and the account console ("Gerenciar minha conta").
     const loginTheme = process.argv.includes('--activate-theme') ? 'sidpb' : null;
+    const accountTheme = loginTheme;
     const response = await fetch(`${kc}/admin/realms/sidpb`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${env.KC_ADMIN_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ loginTheme }),
+      body: JSON.stringify({ loginTheme, accountTheme }),
     });
-    if (!response.ok) throw new Error(`Unable to update login theme: HTTP ${response.status}`);
-    console.log(loginTheme ? 'Login theme sidpb activated.' : 'Login theme returned to the Keycloak default.');
+    if (!response.ok) throw new Error(`Unable to update themes: HTTP ${response.status}`);
+    console.log(loginTheme ? 'Login and account themes sidpb activated.' : 'Login and account themes returned to the Keycloak default.');
   } else if (process.argv.includes('--inspect')) {
     const response = await fetch(`${kc}/admin/realms/sidpb`, { headers: { Authorization: `Bearer ${env.KC_ADMIN_TOKEN}` } });
     const realm = await response.json();
-    const keys = ['registrationAllowed','registrationEmailAsUsername','verifyEmail','resetPasswordAllowed','loginWithEmailAllowed','duplicateEmailsAllowed','rememberMe','editUsernameAllowed','internationalizationEnabled','supportedLocales','defaultLocale','loginTheme'];
+    const keys = ['registrationAllowed','registrationEmailAsUsername','verifyEmail','resetPasswordAllowed','loginWithEmailAllowed','duplicateEmailsAllowed','rememberMe','editUsernameAllowed','internationalizationEnabled','supportedLocales','defaultLocale','loginTheme','accountTheme'];
     console.log(JSON.stringify(Object.fromEntries(keys.map(key => [key, realm[key]])), null, 2));
     const providers = await fetch(`${kc}/admin/realms/sidpb/identity-provider/instances`, { headers: { Authorization: `Bearer ${env.KC_ADMIN_TOKEN}` } });
     if (providers.ok) console.log('Identity provider aliases:', (await providers.json()).map(provider => provider.alias).join(', '));

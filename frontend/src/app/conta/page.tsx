@@ -8,7 +8,7 @@ export default function ContaPage() {
   const { user } = useAuth();
 
   return (
-    <ProfileLayout role={user?.role ?? "USER"} title="Conta">
+    <ProfileLayout role={user?.role ?? "USER"} title="Minha conta">
       {user && <AccountSettings key={user.id} user={user} />}
     </ProfileLayout>
   );

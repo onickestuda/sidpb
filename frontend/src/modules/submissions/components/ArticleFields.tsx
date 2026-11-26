@@ -42,7 +42,7 @@ const FIELDS: { key: keyof ArticleFormValues; label: string; max: number; type?:
   { key: "source", label: "Revista / fonte", max: 200 },
   { key: "disease", label: "Doença", max: 200 },
   { key: "parasite", label: "Parasito", max: 200 },
-  { key: "vector", label: "Vetor", max: 200 },
+  { key: "vector", label: "Agente etiológico", max: 200 },
   { key: "host", label: "Hospedeiro", max: 200 },
   { key: "state", label: "Estado", max: 100 },
   { key: "municipality", label: "Município", max: 200 },

@@ -1,0 +1,65 @@
+/* SIDPB account console: same palette, typography and square corners as the app and login theme. */
+:root {
+  --sidpb-green-900: #123d18;
+  --sidpb-green-800: #1b5e20;
+  --sidpb-green-700: #237a2b;
+  --sidpb-green-50: #eef6ef;
+  --sidpb-slate-950: #111827;
+  --sidpb-slate-500: #6b7280;
+  --sidpb-slate-200: #e5e7eb;
+  --sidpb-page: #f6f8fa;
+
+  --pf-v5-global--FontFamily--text: Arial, Helvetica, sans-serif;
+  --pf-v5-global--FontFamily--heading: Arial, Helvetica, sans-serif;
+  --pf-v5-global--primary-color--100: var(--sidpb-green-800);
+  --pf-v5-global--primary-color--200: var(--sidpb-green-900);
+  --pf-v5-global--primary-color--light-100: var(--sidpb-green-50);
+  --pf-v5-global--link--Color: var(--sidpb-green-800);
+  --pf-v5-global--link--Color--hover: var(--sidpb-green-900);
+  --pf-v5-global--active-color--100: var(--sidpb-green-800);
+  --pf-v5-global--BorderRadius--sm: 0;
+  --pf-v5-global--BorderRadius--lg: 0;
+  --pf-v5-global--BackgroundColor--light-300: var(--sidpb-page);
+  --pf-v5-global--Color--100: var(--sidpb-slate-950);
+}
+
+/* Header: white bar with the SIDPB logo, like the app header. */
+.pf-v5-c-masthead {
+  --pf-v5-c-masthead--BackgroundColor: #fff;
+  --pf-v5-c-masthead--item-border-color--base: var(--sidpb-slate-200);
+  border-bottom: 1px solid var(--sidpb-slate-200);
+  color: var(--sidpb-slate-950);
+}
+.pf-v5-c-masthead .pf-v5-c-button,
+.pf-v5-c-masthead .pf-v5-c-menu-toggle { color: var(--sidpb-slate-950); }
+.pf-v5-c-masthead .pf-v5-c-brand,
+.pf-v5-c-masthead__brand img { max-height: 36px; width: auto; }
+
+/* Side navigation: light, with green indicator on the current page. */
+.pf-v5-c-page__sidebar {
+  --pf-v5-c-page__sidebar--BackgroundColor: #fff;
+  border-right: 1px solid var(--sidpb-slate-200);
+}
+.pf-v5-c-nav {
+  --pf-v5-c-nav__link--Color: var(--sidpb-slate-950);
+  --pf-v5-c-nav__link--hover--Color: var(--sidpb-green-800);
+  --pf-v5-c-nav__link--m-current--Color: var(--sidpb-green-800);
+  --pf-v5-c-nav__link--BackgroundColor: transparent;
+  --pf-v5-c-nav__link--hover--BackgroundColor: var(--sidpb-green-50);
+  --pf-v5-c-nav__link--m-current--BackgroundColor: var(--sidpb-green-50);
+  --pf-v5-c-nav__link--before--BorderColor: transparent;
+  --pf-v5-c-nav__link--m-current--after--BorderColor: var(--sidpb-green-800);
+  --pf-v5-c-nav__section-title--Color: var(--sidpb-slate-500);
+}
+
+.pf-v5-c-page__main-section { --pf-v5-c-page__main-section--BackgroundColor: var(--sidpb-page); }
+.pf-v5-c-page__main-section.pf-m-light { --pf-v5-c-page__main-section--BackgroundColor: #fff; border-bottom: 1px solid var(--sidpb-slate-200); }
+
+.pf-v5-c-card { border: 1px solid var(--sidpb-slate-200); box-shadow: none; }
+
+.pf-v5-c-button.pf-m-primary { --pf-v5-c-button--m-primary--BackgroundColor: var(--sidpb-green-800); --pf-v5-c-button--m-primary--hover--BackgroundColor: var(--sidpb-green-900); }
+.pf-v5-c-button.pf-m-secondary { --pf-v5-c-button--m-secondary--Color: var(--sidpb-green-800); --pf-v5-c-button--m-secondary--BorderColor: var(--sidpb-green-800); }
+.pf-v5-c-button.pf-m-link { --pf-v5-c-button--m-link--Color: var(--sidpb-green-800); }
+
+.pf-v5-c-form-control { --pf-v5-c-form-control--BorderRadius: 0; }
+.pf-v5-c-form-control:focus-within { --pf-v5-c-form-control--after--BorderBottomColor: var(--sidpb-green-800); }

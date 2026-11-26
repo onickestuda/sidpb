@@ -36,7 +36,7 @@ no registro. Uma segunda decisão retorna 409; `@Version` também evita sobrescr
 entre decisões simultâneas.
 
 Os três conjuntos de dados têm o mesmo contrato: título, lista de autores, ano,
-DOI, doença, parasito, vetor, hospedeiro, estado, município, latitude, longitude,
+DOI, doença, parasito, agente etiológico, hospedeiro, estado, município, latitude, longitude,
 fonte e observações. Os nomes são livres nesta área de revisão, sem criar entradas
 automáticas nos catálogos definitivos. Coordenadas são opcionais, mas devem ser
 informadas em par. Título é obrigatório; os demais dados são opcionais.

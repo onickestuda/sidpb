@@ -7,6 +7,7 @@ interface ToolButtonProps {
   icon: LucideIcon;
   label: string;
   active?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
 }
 
@@ -14,14 +15,17 @@ export function ToolButton({
   icon: Icon,
   label,
   active = false,
+  disabled = false,
   onClick,
 }: ToolButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
+      aria-busy={disabled || undefined}
       className={cn(
-        "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+        "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors disabled:cursor-wait disabled:opacity-70",
         active
           ? "bg-primary text-primary-foreground"
           : "hover:bg-muted"

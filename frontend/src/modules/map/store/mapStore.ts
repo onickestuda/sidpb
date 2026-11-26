@@ -15,6 +15,18 @@ export type MapView = "street" | "satellite";
 export const DEFAULT_CENTER: [number, number] = [-14.235, -51.925];
 export const DEFAULT_ZOOM = 4;
 
+const LOCATE_TIMEOUT_MS = 10000;
+const LOCATE_FLIGHT = { animate: true, duration: 1.5 } as const;
+const UNSUPPORTED_LOCATION = "Seu navegador não permite obter a localização.";
+const LOCATION_ERRORS: Record<number, string> = {
+  1: "Permissão de localização negada. Autorize o acesso à localização no navegador.",
+  2: "Não foi possível obter sua localização agora. Tente novamente.",
+  3: "A busca pela sua localização esgotou o tempo. Tente novamente.",
+};
+
+// Listeners of the single in-flight geolocation request; detached on success, error or map unload.
+let detachLocateRequest: (() => void) | null = null;
+
 
 interface MapStore {
   map: L.Map | null;
@@ -24,6 +36,9 @@ interface MapStore {
   currentZoom: number;
 
   legendVisible: boolean;
+
+  isLocating: boolean;
+  locationError: string | null;
 
   selectedOccurrence: Occurrence | null;
   selectedOccurrences: Occurrence[];
@@ -70,6 +85,9 @@ export const useMapStore = create<MapStore>((set, get) => ({
   currentZoom: DEFAULT_ZOOM,
 
   legendVisible: false,
+
+  isLocating: false,
+  locationError: null,
 
   selectedOccurrence: null,
   selectedOccurrences: [],
@@ -127,11 +145,45 @@ export const useMapStore = create<MapStore>((set, get) => ({
     });
   },
 
+  // Google Maps-like: ask the browser for the position, then fly (animated zoom) to it.
+  // The pin itself is drawn by UserLocationMarker, which listens to the same events.
   locateUser() {
-    get().map?.locate({
-      setView: true,
-      maxZoom: 10,
-    });
+    const map = get().map;
+    if (!map || get().isLocating) return;
+
+    const finish = (patch: Partial<MapStore>) => {
+      detachLocateRequest?.();
+      set({ isLocating: false, ...patch });
+    };
+    const onFound = (event: L.LocationEvent) => {
+      finish({ locationError: null });
+      map.flyTo(event.latlng, MAX_ZOOM, LOCATE_FLIGHT);
+    };
+    const onError = (event: { code?: number }) => {
+      finish({ locationError: LOCATION_ERRORS[event.code ?? 0] ?? UNSUPPORTED_LOCATION });
+    };
+    const onUnload = () => {
+      map.stopLocate();
+      finish({ map: null });
+    };
+
+    map.on("locationfound", onFound);
+    map.on("locationerror", onError);
+    map.on("unload", onUnload);
+    detachLocateRequest = () => {
+      map.off("locationfound", onFound);
+      map.off("locationerror", onError);
+      map.off("unload", onUnload);
+      detachLocateRequest = null;
+    };
+
+    set({ isLocating: true, locationError: null });
+    map.fire("userlocationstart");
+    try {
+      map.locate({ setView: false, timeout: LOCATE_TIMEOUT_MS });
+    } catch {
+      finish({ locationError: UNSUPPORTED_LOCATION });
+    }
   },
 
   toggleMapView() {

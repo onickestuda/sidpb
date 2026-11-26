@@ -111,7 +111,7 @@ test('filter badges reflect each category immediately, disappear at zero, and cl
   assert.match(renderFilters(), /Doenças<\/span><span[^>]*><span aria-label="2 filtros ativos"/);
   filters.toggleVector('Vetor A');
   assert.deepEqual(activeBadges(), [2, 1]);
-  assert.match(renderFilters(), /Vetores<\/span><span[^>]*><span aria-label="1 filtros ativos"/);
+  assert.match(renderFilters(), /Agentes etiológicos<\/span><span[^>]*><span aria-label="1 filtros ativos"/);
   filters.toggleHost('Hospedeiro A');
   for (const state of ['MA', 'PA', 'PI']) filters.toggleState(state);
   assert.deepEqual(activeBadges(), [2, 1, 1, 3]);

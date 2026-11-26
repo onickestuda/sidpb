@@ -12,7 +12,7 @@ import type {
 import { ApiError, apiRequest } from "@/lib/apiClient"
 
 const LOAD_ERROR_MESSAGE =
-  "Nao foi possivel carregar as ocorrencias. Verifique sua conexao e tente novamente."
+  "Não foi possível carregar as ocorrências. Verifique sua conexão e tente novamente."
 
 // Falhas da API sobem para a interface, que exibe o estado de erro do mapa.
 // Nunca substituir por dados ficticios: o mapa apresenta dados cientificos.
@@ -29,9 +29,10 @@ export async function fetchDashboardOccurrences(signal?: AbortSignal) {
     }
 
     console.error("Erro tecnico ao carregar ocorrencias do mapa.", error)
-    // Mensagens de ApiError ja sao escritas para o usuario; falhas de rede,
-    // timeout ou corpo nao-JSON (ex.: 502 do proxy) recebem texto amigavel.
-    throw error instanceof ApiError && error.status > 0 ? error : new Error(LOAD_ERROR_MESSAGE)
+    // Erros 4xx da API ja trazem mensagem para o usuario. Falhas do servidor (5xx),
+    // de rede, timeout ou corpo nao-JSON (ex.: 502 do proxy) recebem texto amigavel.
+    const userFacing = error instanceof ApiError && error.status >= 400 && error.status < 500
+    throw userFacing ? error : new Error(LOAD_ERROR_MESSAGE)
   }
 }
 

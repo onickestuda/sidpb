@@ -33,6 +33,8 @@ export function LeftSidebarTools() {
   const locateUser = useMapStore(
     (state) => state.locateUser
   );
+  const isLocating = useMapStore((state) => state.isLocating);
+  const locationError = useMapStore((state) => state.locationError);
 
   const toggleFullscreen = useMapStore(
   (state) => state.toggleFullscreen
@@ -51,9 +53,15 @@ export function LeftSidebarTools() {
 
         <ToolButton
           icon={LocateFixed}
-          label="Localizar"
+          label={isLocating ? "Localizando..." : "Localizar"}
+          disabled={isLocating}
           onClick={locateUser}
         />
+        {locationError && (
+          <p role="alert" className="px-3 pb-1 text-xs text-destructive">
+            {locationError}
+          </p>
+        )}
 
         <ToolButton
           icon={Satellite}

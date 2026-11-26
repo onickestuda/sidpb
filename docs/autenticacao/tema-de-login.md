@@ -47,10 +47,10 @@ com a operação daquele ambiente.
 ## Ativar e voltar ao padrão
 
 No console administrativo, selecione o realm `sidpb` e acesse **Realm settings →
-Themes → Login theme → sidpb**. Salve apenas essa opção. Não altere o realm
+Themes → Login theme → sidpb** e **Account theme → sidpb**. Salve apenas essas opções. Não altere o realm
 `master` nem o tema administrativo.
 
-Para voltar, selecione **keycloak** em **Login theme** e salve. O helper local
+Para voltar, selecione **keycloak** em **Login theme** e **keycloak.v3** em **Account theme** e salve. O helper local
 oferece as mesmas operações sem substituir o realm:
 
 ```powershell
@@ -58,7 +58,9 @@ node infra/keycloak/configure-local.mjs --activate-theme
 node infra/keycloak/configure-local.mjs --deactivate-theme
 ```
 
-Esses comandos atualizam somente `loginTheme`. O script usa login administrativo
+Esses comandos atualizam somente `loginTheme` e `accountTheme`. O tema de conta
+(`infra/keycloak/themes/sidpb/account`) aplica as cores e o logo do SIDPB ao console
+"Gerenciar minha conta". O script usa login administrativo
 interativo e não registra tokens nem credenciais.
 
 ## Cadastro, senha e e-mail

@@ -84,7 +84,7 @@ export function DashboardRightSidebar({ occurrences }: { occurrences: Occurrence
           const expanded = expandedId === occurrence.id;
           const fields = [
             ["Hospedeiro", occurrenceField(occurrence.host)],
-            ["Vetor", occurrenceField(occurrence.vector)],
+            ["Agente etiológico", occurrenceField(occurrence.vector)],
             ["Parasito", occurrenceField(occurrence.parasite)],
           ].filter(([, value]) => value);
           return (

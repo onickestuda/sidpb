@@ -2,7 +2,7 @@ import type { ArticleData } from "@/entities/submission/submission.types";
 
 const FIELDS: [keyof ArticleData, string][] = [
   ["title", "Título"], ["authors", "Autores"], ["year", "Ano"], ["doi", "DOI"],
-  ["source", "Fonte"], ["disease", "Doença"], ["parasite", "Parasito"], ["vector", "Vetor"],
+  ["source", "Fonte"], ["disease", "Doença"], ["parasite", "Parasito"], ["vector", "Agente etiológico"],
   ["host", "Hospedeiro"], ["state", "Estado"], ["municipality", "Município"],
   ["latitude", "Latitude"], ["longitude", "Longitude"], ["notes", "Observações"],
 ];

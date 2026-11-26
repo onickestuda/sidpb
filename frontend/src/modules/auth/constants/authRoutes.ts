@@ -2,7 +2,7 @@ import type { UserRole } from "@/entities/user/user.types";
 
 // Link e router do Next.js acrescentam o basePath configurado automaticamente.
 export const ROLE_ROUTES: Record<UserRole, string> = {
-  ADMIN: "/admin",
+  ADMIN: "/admin/usuarios",
   CURATOR: "/curador",
   USER: "/usuario",
 };

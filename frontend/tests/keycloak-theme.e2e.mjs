@@ -34,8 +34,8 @@ try {
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   observe(desktop);
   await desktop.goto(app);
-  assert.ok(await desktop.getByText(/Esqueceu a senha/).count());
-  assert.ok(await desktop.getByRole('button', {name:'Verificar meu e-mail',exact:true}).count());
+  assert.equal(await desktop.getByText(/Esqueceu a senha/).count(), 0);
+  assert.equal(await desktop.getByRole('button', {name:'Verificar meu e-mail',exact:true}).count(), 0);
   assert.ok(await desktop.getByRole('link',{name:'Acessar o mapa',exact:true}).count());
   assert.ok(await desktop.getByRole('button',{name:'Continuar com Google',exact:true}).count());
   await desktop.getByRole('link',{name:'Cadastre-se',exact:true}).focus();

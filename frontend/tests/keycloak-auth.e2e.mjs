@@ -31,7 +31,7 @@ async function login(page, fixture) {
   await page.locator('#username').fill(fixture.username);
   await page.locator('#password').fill(fixture.password);
   await page.locator('#kc-login').click();
-  await page.waitForURL(url => url.origin === origin && /\/(usuario|curador|admin)\//.test(url.pathname), { timeout: 45000 });
+  await page.waitForURL(url => url.origin === origin && /\/dashboard\//.test(url.pathname), { timeout: 45000 });
   const response = await page.request.get(app + '/api/auth/session/');
   assert.equal(response.status(), 200);
   return response.json();

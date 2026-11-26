@@ -33,15 +33,14 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ac
       clear(response, sessionCookie); clear(response, transactionCookie);
       return response;
     }
-    if (["login", "register", "google", "recover", "verify"].includes(action)) {
+    if (["login", "register", "google", "recover"].includes(action)) {
       const config = await oidcConfig();
       await cleanup();
       const id = newId(), verifier = oidc.randomPKCECodeVerifier(), state = oidc.randomState(), nonce = oidc.randomNonce();
       await save(id, { verifier, state, nonce, expires: Date.now() + 10 * 60 * 1000 });
       const url = oidc.buildAuthorizationUrl(config, { redirect_uri: options.callback, scope: "openid profile email",
         response_type: "code", code_challenge: await oidc.calculatePKCECodeChallenge(verifier),
-        code_challenge_method: "S256", state, nonce, ...(action === "google" ? { kc_idp_hint: "google" } : {}),
-        ...(action === "verify" ? { prompt: "login" } : {}) });
+        code_challenge_method: "S256", state, nonce, ...(action === "google" ? { kc_idp_hint: "google" } : {}) });
       if (action === "register") url.pathname = url.pathname.replace(/\/auth$/, "/registrations");
       // Password recovery stays on Keycloak's official login screen via its "Forgot password" link.
       const response = NextResponse.redirect(url, 303);
@@ -100,13 +99,13 @@ export async function GET(request: NextRequest, context: { params: Promise<{ act
         await oidc.tokenRevocation(await oidcConfig(), tokens.refresh_token).catch(() => {});
         throw new Error("identity");
       }
-      const user = await me.json();
+      await me.json(); // Confirms the local identity exists before the session is created.
       await invalidate(); // Rotate opaque ID at every authentication.
       const sid = newId();
       await save(sid, { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, idToken: tokens.id_token,
         accessExpires: Date.now() + (tokens.expires_in || 60) * 1000, expires: Date.now() + 8 * 60 * 60 * 1000 } satisfies Session);
-      const route = user.role === "ADMIN" ? "admin" : user.role === "CURATOR" ? "curador" : "usuario";
-      const response = NextResponse.redirect(`${settings().origin}${basePath}/${route}/`, 303);
+      // Every profile lands on the map; personal areas are reached from the user menu.
+      const response = NextResponse.redirect(`${settings().origin}${basePath}/dashboard/`, 303);
       response.headers.set("Cache-Control", "no-store"); response.headers.set("Referrer-Policy", "no-referrer");
       response.cookies.set(sessionCookie, sid, cookieOptions()); clear(response, transactionCookie);
       return response;
@@ -122,8 +121,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ act
       if (!await accessSession()) return json({ message: "Autenticação necessária." }, 401);
       // The native account console performs CSRF-protected linking and credential updates.
       const section = request.nextUrl.searchParams.get("section");
-      const path = section === "google" ? "account-security/linked-accounts"
-        : section === "password" ? "account-security/signing-in" : "";
+      const sections: Record<string, string> = {
+        google: "account-security/linked-accounts", password: "account-security/signing-in",
+        sessions: "account-security/device-activity", profile: "",
+      };
+      const path = (section && sections[section]) || "";
       const response = NextResponse.redirect(`${settings().issuer}/account/${path}`, 303);
       response.headers.set("Cache-Control", "no-store");
       return response;

@@ -26,6 +26,7 @@ import {
   getClusterRadiusByZoom,
 } from "./map-zoom";
 import { MapZoomTracker } from "./MapZoomTracker";
+import { UserLocationMarker } from "./UserLocationMarker";
 import { OccurrenceMarker } from "./OccurrenceMarker";
 import { shouldOpenClusterSidebar } from "./occurrence-cluster";
 
@@ -126,6 +127,7 @@ export default function LeafletMap({
         <MapInstance onReady={onMapReady} />
 
         <MapZoomTracker onZoomChange={setCurrentZoom} />
+        <UserLocationMarker />
 
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

@@ -69,7 +69,7 @@ export function DashboardMap({
           {isLoading ? (
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <Spinner className="size-4" />
-              Carregando ocorrencias do backend...
+              Carregando ocorrências...
             </div>
           ) : error ? (
             <div className="flex items-start gap-3 text-sm text-destructive">
@@ -84,7 +84,7 @@ export function DashboardMap({
 
       {!isLoading && !error && !emptyMessage && invalidCoordinatesCount > 0 && (
         <div className="absolute bottom-4 left-4 z-20 border border-border bg-background px-3 py-2 text-xs text-muted-foreground shadow-lg">
-          {invalidCoordinatesCount} ocorrencia(s) sem coordenadas validas foram ocultadas.
+          {invalidCoordinatesCount} ocorrência(s) sem coordenadas válidas foram ocultadas.
         </div>
       )}
     </div>

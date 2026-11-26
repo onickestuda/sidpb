@@ -13,7 +13,7 @@ export function OccurrenceDetails({ occurrence }: { occurrence: Occurrence }) {
     ["Categoria", occurrenceField(occurrence.hostCategory)],
     ["Sexo", occurrenceField(occurrence.hostSex)],
     ["Idade", occurrenceField(occurrence.hostAge)],
-    ["Vetor", occurrenceField(occurrence.vector)],
+    ["Agente etiológico", occurrenceField(occurrence.vector)],
     ["Parasito", occurrenceField(occurrence.parasite)],
     ["Desfecho", occurrenceField(occurrence.outcome)],
   ].filter(([, value]) => value);

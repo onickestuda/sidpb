@@ -60,7 +60,7 @@ export function LeftSidebarFilters({
     },
     {
       key: "vectors" as const,
-      title: "Vetores",
+      title: "Agentes etiológicos",
       options: options.vectors,
       selected: selectedVectors,
       toggle: toggleVector,
