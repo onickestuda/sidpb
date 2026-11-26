@@ -1,5 +1,5 @@
-import type { ArticleData, ExtractedOccurrence, ExtractionDetail, CurationFilters, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
-import { apiUrl, apiRequest } from "@/lib/apiClient";
+import type { ArticleData, CuratedOccurrence, CurationFilters, ExtractionDetail, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
+import { ApiError, apiUrl, apiRequest } from "@/lib/apiClient";
 
 export const curationService = {
   list(filters: CurationFilters, signal?: AbortSignal) {
@@ -8,9 +8,10 @@ export const curationService = {
   get(id: number, signal?: AbortSignal) {
     return apiRequest<SubmissionDetail>(`/api/curation/submissions/${id}`, { signal });
   },
-  approve(id: number, curatorId: number, curatedData: ArticleData) {
+  /** occurrences: the curated forms; they replace whatever the extraction found. */
+  approve(id: number, curatorId: number, curatedData: ArticleData, occurrences: CuratedOccurrence[]) {
     return apiRequest<SubmissionDetail>(`/api/curation/submissions/${id}/approve`, {
-      method: "POST", body: { curatorId, curatedData },
+      method: "POST", body: { curatorId, curatedData, occurrences },
     });
   },
   reject(id: number, curatorId: number, reason: string) {
@@ -18,13 +19,14 @@ export const curationService = {
       method: "POST", body: { curatorId, reason },
     });
   },
-  setLocationSeal(id: number, occurrenceId: number, precisaoLocal: ExtractedOccurrence["locationPrecision"]) {
-    return apiRequest<ExtractedOccurrence>(`/api/curation/submissions/${id}/ocorrencias/${occurrenceId}/precisao`, {
-      method: "PUT", body: { precisaoLocal },
-    });
-  },
-  extraction(id: number, signal?: AbortSignal) {
-    return apiRequest<ExtractionDetail>(`/api/curation/submissions/${id}/extracao`, { signal });
+  /** Null when the submission has no automatic extraction. */
+  async extraction(id: number, signal?: AbortSignal) {
+    try {
+      return await apiRequest<ExtractionDetail>(`/api/curation/submissions/${id}/extracao`, { signal });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return null;
+      throw error;
+    }
   },
   pdfUrl(id: number) { return apiUrl(`/api/curation/submissions/${id}/pdf`); },
 };

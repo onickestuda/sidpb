@@ -132,6 +132,83 @@ public class ExtractionIngestionService {
         return store(submissionId, externalId, payload.model(), raw, read);
     }
 
+    /**
+     * On approval, the curator's forms become the only occurrences of this source: the extracted ones
+     * are removed and the confirmed ones are stored as CURADA (keeping the evidence of the extracted
+     * occurrence each form came from). Works for extraction submissions and plain user submissions.
+     */
+    @Transactional
+    public int replaceWithCurated(Integer submissionId, List<com.nca.sistema_miiase_app.dto.curation.CuratedOccurrenceDto> curated) {
+        List<Integer> found = jdbc.queryForList("SELECT id_extracao FROM extracao WHERE id_submissao = ?", Integer.class, submissionId);
+        Integer extractionId = !found.isEmpty() ? found.get(0) : jdbc.queryForObject("""
+                INSERT INTO extracao (id_submissao, id_externo, qualidade, ocorrencias_lidas, observacao_leitura, conteudo_bruto)
+                VALUES (?, ?, 'VALIDA', 0, 'Sem extração automática: ocorrências registradas pelo curador.', '')
+                RETURNING id_extracao""", Integer.class, submissionId, "curadoria:" + submissionId);
+
+        Map<Integer, Map<String, Object>> sources = new java.util.HashMap<>();
+        jdbc.query("SELECT id_ocorrencia_extraida, doenca_original, outros::text AS outros FROM ocorrencia_extraida WHERE id_extracao = ?",
+                (org.springframework.jdbc.core.RowCallbackHandler) rs -> sources.put(rs.getInt(1),
+                        Map.of("original", rs.getString(2) == null ? "" : rs.getString(2), "outros", rs.getString(3))), extractionId);
+        jdbc.update("DELETE FROM ocorrencia_extraida WHERE id_extracao = ?", extractionId);
+
+        int order = 0;
+        for (var occurrence : curated) {
+            order++;
+            String seal = occurrence.locationSeal();
+            LocationResolver.Resolution place = locations.resolver().resolve(
+                    occurrence.municipality(), occurrence.state(), occurrence.latitude(), occurrence.longitude());
+            BigDecimal latitude = null, longitude = null;
+            Integer municipalityId = place.municipalityId(), stateId = place.stateId();
+            switch (seal) {
+                case "EXATA" -> {
+                    if (occurrence.latitude() == null || occurrence.longitude() == null) throw invalid(order,
+                            "informe latitude e longitude para marcar a localização como exata.");
+                    latitude = occurrence.latitude();
+                    longitude = occurrence.longitude();
+                }
+                case "MUNICIPIO" -> {
+                    if (municipalityId == null || place.precision() == Precision.ESTADO || place.precision() == Precision.SEM_LOCAL) {
+                        throw invalid(order, "município não reconhecido na base do IBGE" + (place.note() == null ? "" : " (" + place.note() + ")")
+                                + ". Corrija o município/UF ou escolha outro selo.");
+                    }
+                    LocationResolver.Resolution centroid = locations.resolver().resolve(occurrence.municipality(), occurrence.state(), null, null);
+                    latitude = centroid.latitude();
+                    longitude = centroid.longitude();
+                }
+                case "ESTADO" -> {
+                    if (stateId == null) throw invalid(order, "UF não reconhecida. Informe a sigla ou o nome do estado.");
+                }
+                default -> { municipalityId = null; stateId = null; }
+            }
+            if (seal.equals("ESTADO")) municipalityId = null;
+
+            Map<String, Object> source = occurrence.sourceId() == null ? null : sources.get(occurrence.sourceId());
+            Map<String, Object> others = new LinkedHashMap<>();
+            if (source != null && source.get("outros") != null) {
+                try { others.putAll(JSON.readValue((String) source.get("outros"), new com.fasterxml.jackson.core.type.TypeReference<LinkedHashMap<String, Object>>() { })); }
+                catch (Exception ignored) { /* evidence is optional */ }
+            }
+            others.remove("location_note");
+            if (ExtractionText.clean(occurrence.notes()) != null) others.put("curator_notes", occurrence.notes().strip());
+            String original = source == null || ((String) source.get("original")).isEmpty() ? null : (String) source.get("original");
+
+            jdbc.update("""
+                    INSERT INTO ocorrencia_extraida (id_extracao, ordem, status_curadoria, doenca, doenca_original, parasito, vetor,
+                        hospedeiro, categoria_hospedeiro, municipio_texto, uf_texto, id_municipio, id_estado, latitude, longitude,
+                        precisao_local, ano, outros)
+                    VALUES (?, ?, 'CURADA', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)""",
+                    extractionId, order, ExtractionText.clean(occurrence.disease()), original, ExtractionText.clean(occurrence.parasite()),
+                    ExtractionText.clean(occurrence.vector()), ExtractionText.clean(occurrence.host()), ExtractionText.clean(occurrence.hostCategory()),
+                    ExtractionText.clean(occurrence.municipality()), ExtractionText.clean(occurrence.state()), municipalityId, stateId,
+                    latitude, longitude, seal, occurrence.year(), write(others));
+        }
+        return order;
+    }
+
+    private static ResponseStatusException invalid(int order, String message) {
+        return new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ocorrência " + order + ": " + message);
+    }
+
     private Outcome store(Integer submissionId, String externalId, String model, String raw, ExtractionReader.Result read) {
         Integer extractionId = jdbc.queryForObject("""
                 INSERT INTO extracao (id_submissao, id_externo, modelo, qualidade, ocorrencias_lidas, observacao_leitura, conteudo_bruto)

@@ -49,7 +49,7 @@ public class CurationController {
 
     @PostMapping("/{id}/approve")
     public SubmissionDetailDto approve(@PathVariable Integer id, @Valid @RequestBody ApproveRequestDto request) {
-        return curation.approve(id, new ApproveRequestDto(auth.currentId(), request.curatedData()));
+        return curation.approve(id, new ApproveRequestDto(auth.currentId(), request.curatedData(), request.occurrences()));
     }
 
     @PostMapping("/{id}/reject")

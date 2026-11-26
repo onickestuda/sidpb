@@ -68,37 +68,6 @@ public class ExtractionQueryService {
         return found.get(0);
     }
 
-    /**
-     * Curator's location seal for one extracted occurrence. EXATA needs coordinates and MUNICIPIO a
-     * resolved municipality; the seal stays visible after curation (a street may never be known).
-     */
-    @org.springframework.transaction.annotation.Transactional
-    public OccurrenceView updatePrecision(Integer submissionId, Integer occurrenceId, String precision) {
-        if (!Set.of("EXATA", "MUNICIPIO", "ESTADO", "SEM_LOCAL").contains(precision)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selo de localização inválido.");
-        }
-        List<Map<String, Object>> rows = jdbc.queryForList("""
-                SELECT o.latitude, o.id_municipio, o.id_estado, e.id_extracao,
-                       -- Municipality-level rows store the centroid in latitude/longitude: that is not an exact point.
-                       (o.latitude IS NOT NULL AND (m.id_municipio IS NULL
-                            OR o.latitude <> m.latitude_municipio OR o.longitude <> m.longitude_municipio)) AS ponto_proprio
-                FROM ocorrencia_extraida o
-                JOIN extracao e ON e.id_extracao = o.id_extracao
-                LEFT JOIN municipio m ON m.id_municipio = o.id_municipio
-                WHERE o.id_ocorrencia_extraida = ? AND e.id_submissao = ?""", occurrenceId, submissionId);
-        if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocorrência não encontrada nesta submissão.");
-        Map<String, Object> row = rows.get(0);
-        if (precision.equals("EXATA") && !Boolean.TRUE.equals(row.get("ponto_proprio")))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sem coordenadas registradas: a localização não pode ser marcada como exata.");
-        if (precision.equals("MUNICIPIO") && row.get("id_municipio") == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum município reconhecido para esta ocorrência.");
-        if (precision.equals("ESTADO") && row.get("id_estado") == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma UF reconhecida para esta ocorrência.");
-        jdbc.update("UPDATE ocorrencia_extraida SET precisao_local = ? WHERE id_ocorrencia_extraida = ?", precision, occurrenceId);
-        return occurrences(((Number) row.get("id_extracao")).intValue()).stream()
-                .filter(view -> view.id().equals(occurrenceId)).findFirst().orElseThrow();
-    }
-
     private List<OccurrenceView> occurrences(int extractionId) {
         return jdbc.query("SELECT " + OCCURRENCE_COLUMNS + """
                 FROM ocorrencia_extraida o

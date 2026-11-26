@@ -83,3 +83,13 @@ export interface CurationFilters {
   to: string;
   page: number;
 }
+
+export type LocationSeal = ExtractedOccurrence["locationPrecision"];
+
+/** One occurrence confirmed in the curator's form (sent on approval). */
+export interface CuratedOccurrence {
+  sourceId: number | null;
+  disease: string | null; parasite: string | null; vector: string | null; host: string | null; hostCategory: string | null;
+  municipality: string | null; state: string | null; latitude: number | null; longitude: number | null; year: number | null;
+  locationSeal: LocationSeal; notes: string | null;
+}

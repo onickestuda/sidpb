@@ -21,11 +21,14 @@ public class CurationService {
     private final SubmissionService submissions;
     private final SubmissaoArtigoRepository repository;
     private final JdbcTemplate jdbc;
+    private final com.nca.sistema_miiase_app.service.extraction.ExtractionIngestionService extractions;
 
-    public CurationService(SubmissionService submissions, SubmissaoArtigoRepository repository, JdbcTemplate jdbc) {
+    public CurationService(SubmissionService submissions, SubmissaoArtigoRepository repository, JdbcTemplate jdbc,
+                           com.nca.sistema_miiase_app.service.extraction.ExtractionIngestionService extractions) {
         this.submissions = submissions;
         this.repository = repository;
         this.jdbc = jdbc;
+        this.extractions = extractions;
     }
 
     // Occurrences extracted by the LLM follow the decision on their submission:
@@ -43,7 +46,8 @@ public class CurationService {
         submission.setDadosCurados(request.curatedData());
         // Não inserir em fonte/ocorrencia; manter snapshot final para publicação futura.
         var saved = repository.saveAndFlush(submission);
-        syncExtractedOccurrences(saved.getId(), "CURADA");
+        if (request.occurrences() != null) extractions.replaceWithCurated(saved.getId(), request.occurrences());
+        else syncExtractedOccurrences(saved.getId(), "CURADA");
         return submissions.detail(saved);
     }
 

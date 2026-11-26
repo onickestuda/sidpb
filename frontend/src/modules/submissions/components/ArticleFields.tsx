@@ -50,11 +50,16 @@ const FIELDS: { key: keyof ArticleFormValues; label: string; max: number; type?:
   { key: "longitude", label: "Longitude", max: 30, type: "number", min: -180, numericMax: 180 },
 ];
 
-export function ArticleFields({ form, prefix, disabled = false }: { form: UseFormReturn<ArticleFormValues>; prefix: string; disabled?: boolean }) {
+/** Article-level fields only (the occurrences are curated in their own forms). */
+export const ARTICLE_ONLY_FIELDS: (keyof ArticleFormValues)[] = ["title", "year", "doi", "source"];
+
+export function ArticleFields({ form, prefix, disabled = false, fields }: {
+  form: UseFormReturn<ArticleFormValues>; prefix: string; disabled?: boolean; fields?: (keyof ArticleFormValues)[];
+}) {
   const { register, formState: { errors } } = form;
   return (
     <fieldset disabled={disabled} className="grid gap-4 md:grid-cols-2">
-      {FIELDS.map(({ key, label, max, type, min, numericMax }) => (
+      {FIELDS.filter(({ key }) => !fields || fields.includes(key)).map(({ key, label, max, type, min, numericMax }) => (
         <div key={key} className={key === "title" ? "space-y-2 md:col-span-2" : "space-y-2"}>
           <Label htmlFor={`${prefix}-${key}`}>{label}{key === "title" ? " *" : ""}</Label>
           <Input id={`${prefix}-${key}`} type={type ?? "text"} required={key === "title"}
