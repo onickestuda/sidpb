@@ -6,7 +6,6 @@ storage/
 !**/src/test/**/target/
 
 *.env
-!example.env
 
 ### STS ###
 .apt_generated

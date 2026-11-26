@@ -88,5 +88,3 @@ Thumbs.db
 ### Shapefiles IBGE (>100 MB, baixar do IBGE; ver backend/README.MD) ###
 backend/src/main/resources/db/base_geografica/shapefiles_ibge/
 
-### Logs de sessao da extensao Java upgrade ###
-.github/modernize/java-upgrade/hooks/*.json
