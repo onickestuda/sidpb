@@ -60,7 +60,7 @@ Não é possível concluir que uma conta foi excluída no Keycloak apenas porque
 
 `DELETE /api/admin/users/orphans/{idLocal}`, com `{"confirmation":"EXCLUIR"}`.
 
-O BFF já permite esse caminho administrativo. A API revalida o administrador no Keycloak e exige `keycloak_id IS NULL`; recusa uma conta vinculada. A anonimização e auditoria local são atômicas, idempotentes, sem exclusão remota e sem transferência de contribuições. Não há operação em lote por e-mail. O antigo `infra/keycloak/link-legacy-user.sql` agora falha explicitamente, sem executar reassociação.
+O BFF já permite esse caminho administrativo. A API revalida o administrador no Keycloak e exige `keycloak_id IS NULL`; recusa uma conta vinculada. A anonimização e auditoria local são atômicas, idempotentes, sem exclusão remota e sem transferência de contribuições. Não há operação em lote por e-mail. O antigo `infra/keycloak/link-legacy-user.sql` foi removido; não há reassociação de identidades históricas.
 
 ## Migration e validação isolada
 

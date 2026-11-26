@@ -170,13 +170,13 @@ services:
         done
 
         echo "Tabela ocorrencia encontrada."
-        echo "Executando seed de miÃ­ase..."
+        echo "Executando seed de miíase..."
 
         psql \
           -v ON_ERROR_STOP=1 \
           -f /seed/seed_miiase_test.sql
 
-        echo "Seed concluÃ­da com sucesso."
+        echo "Seed concluída com sucesso."
 
     restart: "no"
 

@@ -16,16 +16,16 @@ Arquivos novos principais: `backend/src/main/resources/db/migration/V004__Keyclo
 `frontend/src/app/api/bff/[...path]/route.ts`, layouts protegidos em
 `frontend/src/app/{admin,curador,usuario,conta}/layout.tsx`,
 `frontend/src/modules/auth/components/AdminUsers.tsx`,
-`infra/keycloak/{configure-auth.mjs,configure-local.mjs,realm-auth-settings.json,link-legacy-user.sql}`
+`infra/keycloak/{configure-auth.mjs,configure-local.mjs,realm-auth-settings.json}` (link-legacy-user.sql foi removido depois)
 e este guia. Também foram acrescentados
 `backend/src/test/java/com/nca/sistema_miiase_app/service/auth/IdentityIntegrationTest.java`,
 `frontend/tests/{auth-store.test.cjs,keycloak-auth.e2e.mjs}`.
 
 Arquivos alterados: `backend/pom.xml`, `backend/src/main/resources/application.properties`,
 `backend/src/main/java/com/nca/sistema_miiase_app/{controller/AuthController.java,controller/SubmissionController.java,controller/CurationController.java,domain/entity/Usuario.java,service/auth/AuthService.java,service/curation/CurationService.java,service/submission/SubmissionService.java,dto/curation/ApproveRequestDto.java,dto/curation/RejectRequestDto.java,dto/submission/SubmissionRequestDto.java}`,
-`docker-compose.yaml`, `.env.example`, `frontend/.env.example`,
+`docker-compose.yaml`, `.env.example`, `frontend/.env.example` (removido depois),
 `frontend/{Dockerfile,.dockerignore,package.json,package-lock.json}`,
-`frontend/src/{app/admin/page.tsx,app/providers.tsx,modules/auth/auth.permissions.ts,modules/auth/components/AccountSettings.tsx,modules/auth/hooks/useAuth.ts,modules/auth/services/auth.service.ts,modules/auth/store/authStore.ts,modules/curation/services/curation.service.ts,modules/submissions/services/submissions.service.ts,sections/login-wall/LoginWallCard.tsx,services/apiClient.ts}`
+`frontend/src/{app/admin/page.tsx,app/providers.tsx,modules/auth/auth.permissions.ts,modules/auth/components/AccountSettings.tsx,modules/auth/hooks/useAuth.ts,modules/auth/services/auth.service.ts,modules/auth/store/authStore.ts,modules/curation/services/curation.service.ts,modules/submissions/services/submissions.service.ts,modules/login-wall/components/LoginWallCard.tsx,lib/apiClient.ts}`
 e testes afetados. `frontend/src/modules/auth/services/auth.persistence.ts` foi
 removido. O `.env` local e `frontend/.env.local` receberam segredos novos,
 continuam ignorados pelo Git e não foram sobrescritos. Os arquivos da etapa 1
@@ -134,10 +134,10 @@ O `.env.example` da raiz inclui as cinco variáveis novas da etapa 3:
 `KEYCLOAK_ISSUER`, `KEYCLOAK_WEB_SECRET`, `KEYCLOAK_API_SECRET`,
 `KEYCLOAK_SERVICE_SECRET` e `AUTH_SESSION_KEY`. A última deve ser 32 bytes
 aleatórios codificados em base64; trocá-la invalida as sessões locais.
-Credenciais de cliente são diferentes entre si. Para Next.js local, copie
-esses dois últimos valores aplicáveis (`KEYCLOAK_WEB_SECRET` e
-`AUTH_SESSION_KEY`) para `frontend/.env.local`, junto às URLs do exemplo
-`frontend/.env.example`. Não sobrescreva os valores já existentes do arquivo.
+Credenciais de cliente são diferentes entre si. O Next.js local lê o `.env` da raiz
+(modelo em `.env.example`), inclusive `KEYCLOAK_WEB_SECRET` e `AUTH_SESSION_KEY`;
+não é preciso duplicá-los em `frontend/.env.local`. Veja
+`docs/desenvolvimento/enderecos-locais.md`.
 
 Na raiz do repositório, com o banco e Keycloak ativos:
 
@@ -174,7 +174,7 @@ validado.
 O ciclo de identidade agora segue [docs/autenticacao/ciclo-de-vida-da-conta.md](docs/autenticacao/ciclo-de-vida-da-conta.md).
 Um novo subject sempre recebe uma identidade local nova, mesmo com e-mail anteriormente usado.
 O bloqueio 409/legacy e o procedimento de reassociacao foram removidos.
-O script link-legacy-user.sql esta desativado e nao deve ser usado.
+O script link-legacy-user.sql foi desativado e depois removido do repositório.
 
 Submissão, leitura própria e PDFs usam a identidade autenticada; IDs antigos
 na URL são conferidos e IDs enviados no corpo de POST são ignorados. Uma

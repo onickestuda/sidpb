@@ -308,7 +308,7 @@ Modificados:
 - `docker-compose.yaml` (volume de PDFs)
 - `frontend/src/app/usuario/page.tsx` (submissões)
 - `frontend/src/app/curador/page.tsx` (fila)
-- `frontend/src/services/apiClient.ts` (FormData)
+- `frontend/src/lib/apiClient.ts` (FormData)
 
 ## Validação executada
 

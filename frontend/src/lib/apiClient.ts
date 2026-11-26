@@ -78,9 +78,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
         ...(options.body && !isFormData ? { "Content-Type": "application/json" } : {}),
         ...options.headers,
       },
-      // O navegador define o boundary de multipart; nÃ£o definir Content-Type manualmente.
+      // O navegador define o boundary de multipart; não definir Content-Type manualmente.
       body: isFormData ? options.body as FormData : options.body ? JSON.stringify(options.body) : undefined,
-      signal: options.signal ?? controller.signal,
+      // O timeout vale mesmo quando o chamador (ex.: react-query) envia o próprio signal.
+      signal: options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal,
     })
 
     const text = await response.text()

@@ -87,7 +87,7 @@ try {
     await page.evaluate(() => {
       const form = document.querySelector('.card-pf');
       const fixture = document.createElement('div');
-      fixture.innerHTML = '<button id="secondary-fixture" class="pf-c-button btn-default pf-m-block btn-lg" type="button">Confirmar vÃƒÂ­nculo de identidade</button>';
+      fixture.innerHTML = '<button id="secondary-fixture" class="pf-c-button btn-default pf-m-block btn-lg" type="button">Confirmar vínculo de identidade</button>';
       form.append(fixture);
     });
     const secondary = page.locator('#secondary-fixture');

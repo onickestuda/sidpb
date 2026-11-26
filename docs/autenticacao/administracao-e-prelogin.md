@@ -25,7 +25,7 @@ não a fonte de autorização administrativa.
 | Administração | `backend/src/main/java/com/nca/sistema_miiase_app/controller/AdminUsersController.java`, `AdminExceptionHandler.java`, `service/auth/AdminUsersService.java`, `AdminAuditService.java` |
 | Segurança e transporte | `config/SecurityConfig.java`, `service/auth/KeycloakGateway.java`, `backend/src/main/resources/application.properties` |
 | Banco | `backend/src/main/resources/db/migration/V005__AdministrativeAudit.sql` |
-| Entrada pública | `frontend/src/sections/login-wall/LoginWallCard.tsx`, `LoginWallPage.tsx`, `LoginWallMapBackground.tsx`; removido `LoginWallReadOnlyMap.tsx` |
+| Entrada pública | `frontend/src/modules/login-wall/components/LoginWallCard.tsx`, `LoginWallPage.tsx`, `LoginWallMapBackground.tsx`; removido `LoginWallReadOnlyMap.tsx` |
 | Recursos compartilhados | `frontend/public/auth/login-map.png`, `prelogin.css`, `frontend/scripts/sync-auth-assets.mjs`, `frontend/package.json`, `infra/keycloak/sync-theme-assets.mjs` |
 | Tema | `infra/keycloak/themes/sidpb/login/theme.properties`, `resources/css/sidpb.css`, `resources/js/sidpb.js`, `resources/auth/*`; removidos Leaflet e pontos antes distribuídos pelo tema |
 | Testes | `AuthControllerTest.java`, `AdminUsersIntegrationTest.java`, `infra/keycloak/test-admin-db.mjs`, `frontend/tests/keycloak-auth.e2e.mjs`, `keycloak-theme.e2e.mjs`, `run-admin-local.mjs` |
