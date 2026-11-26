@@ -1,34 +1,31 @@
-import { BadgeCheck, CircleHelp, MapPinned } from "lucide-react";
+import { CircleHelp, MapPinned } from "lucide-react";
 import type { Occurrence } from "@/entities/occurrence/occurrence.types";
 
 type ProvenanceOccurrence = Pick<Occurrence, "curation" | "locationPrecision" | "extractionModel" | "extras" | "state" | "city">;
 
-const PRECISION_NOTES: Record<Occurrence["locationPrecision"], string | null> = {
-  EXATA: null,
-  MUNICIPIO: "Posição aproximada: centro do município.",
-  ESTADO: "Só o estado é conhecido; sem ponto no mapa.",
-  SEM_LOCAL: "Sem local confirmado; sem ponto no mapa.",
+/** Location seal, shared with the curator form. EXATA needs no warning. */
+export const LOCATION_SEALS: Record<Occurrence["locationPrecision"], string> = {
+  EXATA: "Localização exata",
+  MUNICIPIO: "Localização aproximada, sem coordenadas exatas",
+  ESTADO: "Localização imprecisa: só o estado é conhecido",
+  SEM_LOCAL: "Sem local confirmado",
 };
 
-/** Curation status and location precision, shown on every occurrence card. */
+/**
+ * Warnings about how far the occurrence can be trusted, in one amber block: not curated yet and/or
+ * imprecise location. The location seal stays after curation (the street may never be known).
+ */
 export function OccurrenceCurationNote({ occurrence }: { occurrence: ProvenanceOccurrence }) {
-  const precision = PRECISION_NOTES[occurrence.locationPrecision];
+  const notCurated = occurrence.curation === "NAO_CURADA";
+  const imprecise = occurrence.locationPrecision !== "EXATA";
+  if (!notCurated && !imprecise) return null;
   return (
-    <div className="space-y-1">
-      {occurrence.curation === "NAO_CURADA" ? (
-        <p className="inline-flex items-center gap-1.5 border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-900">
-          <CircleHelp className="size-3.5" aria-hidden />
-          Não curada · extraída automaticamente{occurrence.extractionModel ? ` (${occurrence.extractionModel})` : ""}
-        </p>
-      ) : (
-        <p className="inline-flex items-center gap-1.5 border border-primary/30 bg-primary/5 px-2 py-0.5 text-[11px] font-medium text-primary">
-          <BadgeCheck className="size-3.5" aria-hidden />Curada
-        </p>
-      )}
-      {precision && (
-        <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <MapPinned className="size-3.5 shrink-0" aria-hidden />{precision}
-        </p>
+    <div className="inline-flex flex-col gap-0.5 border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900">
+      {notCurated && <span className="inline-flex items-center gap-1.5"><CircleHelp className="size-3.5 shrink-0" aria-hidden />Não curada</span>}
+      {imprecise && (
+        <span className="inline-flex items-center gap-1.5">
+          <MapPinned className="size-3.5 shrink-0" aria-hidden />{LOCATION_SEALS[occurrence.locationPrecision]}
+        </span>
       )}
     </div>
   );

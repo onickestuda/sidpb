@@ -1,9 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ApiError } from "@/lib/apiClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ExtractedOccurrence, ExtractionQuality } from "@/entities/submission/submission.types";
-import { OccurrenceExtras } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceProvenance";
+import { LOCATION_SEALS, OccurrenceExtras } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceProvenance";
 import { formatDate } from "@/modules/submissions/components/SubmissionTable";
 import { curationService } from "../services/curation.service";
 
@@ -15,9 +17,33 @@ const QUALITY: Record<ExtractionQuality, { label: string; tone: string; help: st
   ILEGIVEL: { label: "Extração com falha", tone: "border-destructive/40 bg-destructive/5 text-destructive",
     help: "Não foi possível ler a extração automaticamente. Cure a partir da fonte." },
 };
-const PRECISION: Record<ExtractedOccurrence["locationPrecision"], string> = {
-  EXATA: "coordenada informada", MUNICIPIO: "centro do município", ESTADO: "só o estado", SEM_LOCAL: "sem local confirmado",
-};
+/** Curator's choice of the location seal shown on the map (kept after curation). */
+function LocationSealSelect({ submissionId, occurrence }: { submissionId: number; occurrence: ExtractedOccurrence }) {
+  const queries = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
+  const mutation = useMutation({
+    mutationFn: (seal: ExtractedOccurrence["locationPrecision"]) => curationService.setLocationSeal(submissionId, occurrence.id, seal),
+    onSuccess: () => {
+      setError(null);
+      void queries.invalidateQueries({ queryKey: ["curation", "extraction", submissionId] });
+      void queries.invalidateQueries({ queryKey: ["dashboard-occurrences"] });
+    },
+    onError: (cause) => setError(cause instanceof ApiError ? cause.message : "Não foi possível salvar o selo."),
+  });
+  return (
+    <label className="mt-2 block text-xs">
+      <span className="font-medium">Selo de localização</span>
+      <select value={occurrence.locationPrecision} disabled={mutation.isPending}
+        onChange={(event) => mutation.mutate(event.target.value as ExtractedOccurrence["locationPrecision"])}
+        className="mt-1 block w-full border border-input bg-background px-2 py-1.5 text-sm">
+        {(Object.keys(LOCATION_SEALS) as ExtractedOccurrence["locationPrecision"][]).map((seal) => (
+          <option key={seal} value={seal}>{LOCATION_SEALS[seal]}</option>
+        ))}
+      </select>
+      {error && <span role="alert" className="mt-1 block text-destructive">{error}</span>}
+    </label>
+  );
+}
 
 function Field({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === "") return null;
@@ -57,9 +83,9 @@ export function ExtractionPanel({ submissionId }: { submissionId: number }) {
               <Field label="Parasito" value={occurrence.parasite} />
               <Field label="Agente etiológico" value={occurrence.vector} />
               <Field label="Local" value={[occurrence.municipality, occurrence.state].filter(Boolean).join(" / ") || null} />
-              <Field label="Precisão do local" value={PRECISION[occurrence.locationPrecision]} />
               <Field label="Ano do evento" value={occurrence.year} />
             </dl>
+            <LocationSealSelect submissionId={submissionId} occurrence={occurrence} />
             <OccurrenceExtras extras={occurrence.others} />
           </article>
         ))}

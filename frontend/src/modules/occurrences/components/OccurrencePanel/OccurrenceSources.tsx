@@ -11,11 +11,17 @@ export function OccurrenceSources({ articles, compact = false }: { articles: Art
         {!compact && (
           <>
             <p className="text-sm font-medium">{article.title}</p>
+            {article.doi && (
+              <a href={`https://doi.org/${article.doi}`} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                DOI: {article.doi}<ExternalLink className="size-3 shrink-0" aria-hidden="true" />
+              </a>
+            )}
             <p className="text-xs text-muted-foreground">
               {[article.authors?.join(", "), article.journal, article.year > 0 ? article.year : undefined]
                 .filter(Boolean).join(" · ")}
             </p>
-            {article.type && <p className="text-xs text-muted-foreground">{article.type}</p>}
+            {article.type && article.type !== "outro" && <p className="text-xs text-muted-foreground">{article.type}</p>}
           </>
         )}
         {url && (

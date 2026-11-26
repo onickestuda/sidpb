@@ -16,7 +16,7 @@ let pendingRefresh: { revision: number; promise: Promise<void> } | null = null;
 
 // Cache/estado de UI. A fonte de autenticação fica exclusivamente no authService.
 // Senha e password_hash nunca entram neste store.
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: false,
   isInitializing: true,
@@ -29,7 +29,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Compartilha o bootstrap concorrente, inclusive no StrictMode do React.
     if (pendingRefresh?.revision === sessionRevision) return pendingRefresh.promise;
     const revision = sessionRevision;
-    set({ isInitializing: true });
+    // Only the first load blocks the page. Background re-checks (e.g. when the window regains focus
+    // after the OS file picker) must not unmount forms and lose what the user already filled in.
+    if (!get().user) set({ isInitializing: true });
     const promise = (async () => {
       let user: AuthUser | null = null;
       try {

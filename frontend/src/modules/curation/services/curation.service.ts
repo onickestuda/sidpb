@@ -1,4 +1,4 @@
-import type { ArticleData, ExtractionDetail, CurationFilters, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
+import type { ArticleData, ExtractedOccurrence, ExtractionDetail, CurationFilters, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
 import { apiUrl, apiRequest } from "@/lib/apiClient";
 
 export const curationService = {
@@ -16,6 +16,11 @@ export const curationService = {
   reject(id: number, curatorId: number, reason: string) {
     return apiRequest<SubmissionDetail>(`/api/curation/submissions/${id}/reject`, {
       method: "POST", body: { curatorId, reason },
+    });
+  },
+  setLocationSeal(id: number, occurrenceId: number, precisaoLocal: ExtractedOccurrence["locationPrecision"]) {
+    return apiRequest<ExtractedOccurrence>(`/api/curation/submissions/${id}/ocorrencias/${occurrenceId}/precisao`, {
+      method: "PUT", body: { precisaoLocal },
     });
   },
   extraction(id: number, signal?: AbortSignal) {

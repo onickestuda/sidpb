@@ -57,6 +57,7 @@ function sourceToArticle(source: MapOccurrenceSourceDto) {
     year: Number.isFinite(year) ? year : 0,
     journal: source.nomeFonte ?? undefined,
     url: source.url ?? undefined,
+    doi: source.url?.match(/^https:\/\/doi\.org\/(10\..+)$/)?.[1],
     type: source.tipoFonte ?? "outro",
   }
 }

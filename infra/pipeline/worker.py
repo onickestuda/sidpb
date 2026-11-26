@@ -32,7 +32,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-import extrator
+# import extrator  # desativado temporariamente: modo apenas download
 
 HERE = Path(__file__).resolve().parent
 
@@ -92,11 +92,13 @@ def process_queue(sidpb: Sidpb, pdf_dir: Path, limit: int = 5) -> int:
         try:
             with sidpb.request("GET", f"/api/pipeline/trabalhos/{number}/pdf") as response:
                 pdf.write_bytes(response.read())
-            result = extrator.extrair(pdf, titulo=job.get("title"))
-            payload = {"id": f"submissao:{number}", "model": getattr(extrator, "MODELO", None),
-                       "sumarization": result if isinstance(result, str) else json.dumps(result, ensure_ascii=False)}
-            outcome = sidpb.json("POST", f"/api/pipeline/trabalhos/{number}/resultado", payload)
-            print(f"[ok] submissão {number}: {outcome['quality']}, {outcome['occurrences']} ocorrência(s)")
+            print(f"[baixado] submissão {number} -> {pdf}")
+            # --- Extração e envio do resultado desativados temporariamente ---
+            # result = extrator.extrair(pdf, titulo=job.get("title"))
+            # payload = {"id": f"submissao:{number}", "model": getattr(extrator, "MODELO", None),
+            #            "sumarization": result if isinstance(result, str) else json.dumps(result, ensure_ascii=False)}
+            # outcome = sidpb.json("POST", f"/api/pipeline/trabalhos/{number}/resultado", payload)
+            # print(f"[ok] submissão {number}: {outcome['quality']}, {outcome['occurrences']} ocorrência(s)")
         except NotImplementedError as missing:
             sidpb.request("POST", f"/api/pipeline/trabalhos/{number}/devolver").close()
             sys.exit(f"[parado] {missing} — submissão {number} devolvida à fila.")
@@ -109,15 +111,40 @@ def process_queue(sidpb: Sidpb, pdf_dir: Path, limit: int = 5) -> int:
     return len(jobs)
 
 
+def _extract_submission_id(record: dict) -> int | None:
+    if record.get("submissionId") is not None:
+        return int(record["submissionId"])
+    rec_id = str(record.get("id") or "").strip()
+    if rec_id.startswith("submissao:"):
+        suffix = rec_id.split(":", 1)[1].strip()
+        if suffix.isdigit():
+            return int(suffix)
+    name = Path(rec_id).name
+    if name.startswith("sub-") and "__" in name:
+        prefix = name.split("__", 1)[0].removeprefix("sub-")
+        if prefix.isdigit():
+            return int(prefix)
+    return None
+
+
 def send_jsonl(sidpb: Sidpb, file: Path) -> None:
     for number, line in enumerate(file.read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip():
             continue
         record = json.loads(line)
-        outcome = sidpb.json("POST", "/api/pipeline/extracoes", {
-            "id": record.get("id"), "model": record.get("model"), "sumarization": record.get("sumarization")})
-        status = "nova" if outcome["created"] else "já existia"
-        print(f"[{number}] {status}: submissão {outcome['submissionId']}, {outcome['quality']}, {outcome['occurrences']} ocorrência(s)")
+        sumarization = record.get("sumarization")
+        if sumarization is not None and not isinstance(sumarization, str):
+            sumarization = json.dumps(sumarization, ensure_ascii=False)
+        sub_id = _extract_submission_id(record)
+        if sub_id is not None:
+            payload = {"id": f"submissao:{sub_id}", "model": record.get("model"), "sumarization": sumarization}
+            outcome = sidpb.json("POST", f"/api/pipeline/trabalhos/{sub_id}/resultado", payload)
+            print(f"[{number}] resultado da submissão {sub_id}: {outcome['quality']}, {outcome['occurrences']} ocorrência(s)")
+        else:
+            outcome = sidpb.json("POST", "/api/pipeline/extracoes", {
+                "id": record.get("id"), "model": record.get("model"), "sumarization": sumarization})
+            status = "nova" if outcome["created"] else "já existia"
+            print(f"[{number}] {status}: submissão {outcome['submissionId']}, {outcome['quality']}, {outcome['occurrences']} ocorrência(s)")
 
 
 def main() -> None:

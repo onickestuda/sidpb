@@ -7,5 +7,7 @@ export interface Article {
   year: number
   journal?: string
   url?: string
+  /** Bare DOI ("10.xxxx/..."), when known. */
+  doi?: string
   type: ArticleType
 }

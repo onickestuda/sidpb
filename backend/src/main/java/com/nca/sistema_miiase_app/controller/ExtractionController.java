@@ -31,6 +31,14 @@ public class ExtractionController {
         return ResponseEntity.status(outcome.created() ? HttpStatus.CREATED : HttpStatus.OK).body(outcome);
     }
 
+    public record PrecisionRequest(String precisaoLocal) { }
+
+    @org.springframework.web.bind.annotation.PutMapping("/api/curation/submissions/{id}/ocorrencias/{occurrenceId}/precisao")
+    public ExtractionQueryService.OccurrenceView precision(@PathVariable Integer id, @PathVariable Integer occurrenceId,
+                                                           @RequestBody PrecisionRequest request) {
+        return queries.updatePrecision(id, occurrenceId, request.precisaoLocal());
+    }
+
     @GetMapping("/api/curation/submissions/{id}/extracao")
     public ExtractionQueryService.ExtractionView detail(@PathVariable Integer id) {
         return queries.detail(id);

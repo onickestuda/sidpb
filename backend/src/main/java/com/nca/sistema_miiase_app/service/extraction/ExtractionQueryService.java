@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class ExtractionQueryService {
     /** Extracted occurrences shown to everyone: not yet curated and curated; rejected ones never appear. */
     public List<MapOccurrenceDto> mapOccurrences() {
         return jdbc.query("SELECT " + OCCURRENCE_COLUMNS + """
-                , s.id_submissao, s.titulo, s.ano AS ano_artigo, s.dados_usuario::text AS artigo, e.modelo
+                , s.id_submissao, s.titulo, s.ano AS ano_artigo, COALESCE(s.dados_curados, s.dados_usuario)::text AS artigo, e.modelo
                 FROM ocorrencia_extraida o
                 JOIN extracao e ON e.id_extracao = o.id_extracao
                 JOIN submissao_artigo s ON s.id_submissao = e.id_submissao
@@ -67,6 +68,32 @@ public class ExtractionQueryService {
         return found.get(0);
     }
 
+    /**
+     * Curator's location seal for one extracted occurrence. EXATA needs coordinates and MUNICIPIO a
+     * resolved municipality; the seal stays visible after curation (a street may never be known).
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public OccurrenceView updatePrecision(Integer submissionId, Integer occurrenceId, String precision) {
+        if (!Set.of("EXATA", "MUNICIPIO", "ESTADO", "SEM_LOCAL").contains(precision)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selo de localização inválido.");
+        }
+        List<Map<String, Object>> rows = jdbc.queryForList("""
+                SELECT o.latitude, o.id_municipio, o.id_estado, e.id_extracao FROM ocorrencia_extraida o
+                JOIN extracao e ON e.id_extracao = o.id_extracao
+                WHERE o.id_ocorrencia_extraida = ? AND e.id_submissao = ?""", occurrenceId, submissionId);
+        if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocorrência não encontrada nesta submissão.");
+        Map<String, Object> row = rows.get(0);
+        if (precision.equals("EXATA") && row.get("latitude") == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sem coordenadas registradas: a localização não pode ser marcada como exata.");
+        if (precision.equals("MUNICIPIO") && row.get("id_municipio") == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum município reconhecido para esta ocorrência.");
+        if (precision.equals("ESTADO") && row.get("id_estado") == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma UF reconhecida para esta ocorrência.");
+        jdbc.update("UPDATE ocorrencia_extraida SET precisao_local = ? WHERE id_ocorrencia_extraida = ?", precision, occurrenceId);
+        return occurrences(((Number) row.get("id_extracao")).intValue()).stream()
+                .filter(view -> view.id().equals(occurrenceId)).findFirst().orElseThrow();
+    }
+
     private List<OccurrenceView> occurrences(int extractionId) {
         return jdbc.query("SELECT " + OCCURRENCE_COLUMNS + """
                 FROM ocorrencia_extraida o
@@ -86,12 +113,16 @@ public class ExtractionQueryService {
         Integer eventYear = (Integer) rs.getObject("ano");
         @SuppressWarnings("unchecked")
         List<String> authors = article.get("authors") instanceof List<?> list ? (List<String>) list : List.of();
-        var source = new MapOccurrenceDto.FonteDto(null, "Extração automática", (String) article.get("source"),
-                new ArrayList<>(authors), rs.getString("titulo"), null, articleYear == null ? null : LocalDate.of(articleYear, 1, 1));
+        String doi = article.get("doi") instanceof String value && !value.isBlank() ? value.strip() : null;
+        String title = article.get("title") instanceof String value && !value.isBlank() ? value : rs.getString("titulo");
+        var source = new MapOccurrenceDto.FonteDto(null, null, null, new ArrayList<>(authors), title,
+                doi == null ? null : "https://doi.org/" + doi, articleYear == null ? null : LocalDate.of(articleYear, 1, 1));
 
         int id = rs.getInt("id_ocorrencia_extraida");
+        // Only exact and municipality-level positions become points; the curator's seal decides.
+        boolean pinned = Set.of("EXATA", "MUNICIPIO").contains(rs.getString("precisao_local"));
         var dto = new MapOccurrenceDto(-id, null, rs.getString("municipio"), rs.getString("uf"), null,
-                rs.getBigDecimal("latitude"), rs.getBigDecimal("longitude"), rs.getString("doenca"), rs.getString("hospedeiro"),
+                pinned ? rs.getBigDecimal("latitude") : null, pinned ? rs.getBigDecimal("longitude") : null, rs.getString("doenca"), rs.getString("hospedeiro"),
                 rs.getString("categoria_hospedeiro"), rs.getString("parasito"), rs.getString("vetor"),
                 null, null, List.of(source)); // only the year is known: never fake a day/month
         Map<String, Object> others = others(rs.getString("outros"));

@@ -37,7 +37,8 @@ public class ExtractionIngestionService {
                           int occurrences, Map<Precision, Integer> byPrecision, String note) { }
 
     private static final ObjectMapper JSON = new ObjectMapper();
-    private static final Pattern YEAR = Pattern.compile("(1[5-9]\\d{2}|20\\d{2}|2100)");
+    private static final Pattern DOI = Pattern.compile("10\\.\\d{4,9}/\\S+");
+    private static final Pattern YEAR =Pattern.compile("(1[5-9]\\d{2}|20\\d{2}|2100)");
     // Fields the map/curation already show; everything else in an occurrence goes to "outros".
     private static final Set<String> MAPPED = Set.of("host", "disease", "parasite", "vector", "location", "event_year");
 
@@ -79,7 +80,7 @@ public class ExtractionIngestionService {
                 .map(occurrence -> ExtractionText.normalizeDisease(diseaseText(occurrence)))
                 .filter(java.util.Objects::nonNull).findFirst().orElse(null);
 
-        ArticleDataDto article = new ArticleDataDto(truncate(title, 500), authors, year, null, truncate(firstDisease, 200),
+        ArticleDataDto article = new ArticleDataDto(truncate(title, 500), authors, year, truncate(doi(firstText(source, "doi")), 200), truncate(firstDisease, 200),
                 null, null, null, null, null, null, null, truncate(sourceType, 200),
                 "Recebido automaticamente do pipeline de extração (" + (payload.model() == null ? "modelo não informado" : payload.model()) + ").");
         String articleJson = write(article);
@@ -181,6 +182,13 @@ public class ExtractionIngestionService {
                 place.latitude(), place.longitude(), place.precision().name(),
                 year(occurrence.path("event_year").asText(null)), write(others));
         return place.precision();
+    }
+
+    /** Bare DOI ("10.xxxx/...") from whatever the pipeline sends (plain, "doi:" or a doi.org URL). */
+    static String doi(String value) {
+        if (value == null) return null;
+        Matcher matcher = DOI.matcher(value);
+        return matcher.find() ? matcher.group().replaceAll("[.,;)]+$", "") : null;
     }
 
     private static String diseaseText(JsonNode occurrence) {
