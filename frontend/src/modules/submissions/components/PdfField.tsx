@@ -15,7 +15,7 @@ export function pdfProblem(file: File): string | null {
   return null;
 }
 
-function formatSize(bytes: number) {
+export function formatFileSize(bytes: number) {
   return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
@@ -58,7 +58,7 @@ export function PdfField({ value, onChange, disabled }: PdfFieldProps) {
           <FileText className="size-5 shrink-0 text-primary" aria-hidden />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium" title={value.name}>{value.name}</p>
-            <p className="text-xs text-muted-foreground">{formatSize(value.size)}</p>
+            <p className="text-xs text-muted-foreground">{formatFileSize(value.size)}</p>
           </div>
           <Button type="button" variant="ghost" size="sm" disabled={disabled} onClick={() => setPreview(open => !open)}
             aria-expanded={preview}>

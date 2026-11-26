@@ -1,3 +1,4 @@
+import { formatFileSize } from "./PdfField";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { SubmissionDetail } from "@/entities/submission/submission.types";
@@ -17,7 +18,7 @@ export function SubmissionOverview({ submission: s, pdfUrl, comparison }: { subm
         <CardContent className="flex flex-wrap gap-3">
           <Button asChild><a href={s.originalLink} target="_blank" rel="noopener noreferrer">Abrir artigo original</a></Button>
           <Button asChild variant="outline"><a href={pdfUrl} target="_blank" rel="noopener noreferrer">Visualizar PDF</a></Button>
-          <span className="self-center break-all text-sm text-muted-foreground">{s.pdfName} · {(s.pdfSize / (1024 * 1024)).toFixed(2)} MB</span>
+          <span className="self-center break-all text-sm text-muted-foreground">{s.pdfName} · {formatFileSize(s.pdfSize)}</span>
         </CardContent>
       </Card>
       <div className={comparison ? "grid gap-6 lg:grid-cols-2" : ""}>
