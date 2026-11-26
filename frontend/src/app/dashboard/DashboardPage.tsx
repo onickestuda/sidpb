@@ -40,7 +40,8 @@ export default function DashboardPage() {
     !isInitialLoading &&
     !error &&
     occurrences &&
-    occurrences.features.length === 0
+    occurrences.features.length === 0 &&
+    !occurrences.unlocated?.length
       ? invalidCoordinatesCount > 0
         ? "As ocorrências foram encontradas, mas nenhuma possui coordenadas válidas para o mapa."
         : "Nenhuma ocorrência encontrada para os filtros atuais."

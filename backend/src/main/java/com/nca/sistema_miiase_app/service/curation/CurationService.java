@@ -1,6 +1,7 @@
 package com.nca.sistema_miiase_app.service.curation;
 
 import java.time.Instant;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +20,20 @@ import com.nca.sistema_miiase_app.service.submission.SubmissionService;
 public class CurationService {
     private final SubmissionService submissions;
     private final SubmissaoArtigoRepository repository;
+    private final JdbcTemplate jdbc;
 
-    public CurationService(SubmissionService submissions, SubmissaoArtigoRepository repository) {
+    public CurationService(SubmissionService submissions, SubmissaoArtigoRepository repository, JdbcTemplate jdbc) {
         this.submissions = submissions;
         this.repository = repository;
+        this.jdbc = jdbc;
+    }
+
+    // Occurrences extracted by the LLM follow the decision on their submission:
+    // approved -> CURADA (stays on the map as confirmed), rejected -> REPROVADA (leaves the map).
+    private void syncExtractedOccurrences(Integer submissionId, String status) {
+        jdbc.update("""
+                UPDATE ocorrencia_extraida SET status_curadoria = ?
+                WHERE id_extracao IN (SELECT id_extracao FROM extracao WHERE id_submissao = ?)""", status, submissionId);
     }
 
     public SubmissionDetailDto approve(Integer id, ApproveRequestDto request) {
@@ -31,7 +42,9 @@ public class CurationService {
         submission.setStatus(SubmissaoStatus.APPROVED);
         submission.setDadosCurados(request.curatedData());
         // Não inserir em fonte/ocorrencia; manter snapshot final para publicação futura.
-        return submissions.detail(repository.saveAndFlush(submission));
+        var saved = repository.saveAndFlush(submission);
+        syncExtractedOccurrences(saved.getId(), "CURADA");
+        return submissions.detail(saved);
     }
 
     public SubmissionDetailDto reject(Integer id, RejectRequestDto request) {
@@ -41,7 +54,9 @@ public class CurationService {
         SubmissaoArtigo submission = pending(id, request.curatorId());
         submission.setStatus(SubmissaoStatus.REJECTED);
         submission.setRejectionReason(request.reason().strip());
-        return submissions.detail(repository.saveAndFlush(submission));
+        var saved = repository.saveAndFlush(submission);
+        syncExtractedOccurrences(saved.getId(), "REPROVADA");
+        return submissions.detail(saved);
     }
 
     private SubmissaoArtigo pending(Integer id, Integer curatorId) {

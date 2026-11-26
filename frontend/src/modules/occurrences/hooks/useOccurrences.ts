@@ -6,6 +6,7 @@ import type {
   OccurrenceFilters,
 } from "@/entities/occurrence/occurrence.types"
 import { useFiltersStore } from "@/modules/filters/store/filtersStore"
+import { CURATION_LABELS, UNLOCATED_LABEL } from "@/entities/occurrence/occurrence.types"
 import { useApiQuery } from "@/lib/useApiQuery"
 import {
   applyOccurrenceFilters,
@@ -23,6 +24,7 @@ export function useOccurrences(options: UseOccurrencesOptions = {}) {
   const setSelectedVectors = useFiltersStore((state) => state.setSelectedVectors)
   const setSelectedHosts = useFiltersStore((state) => state.setSelectedHosts)
   const setSelectedStates = useFiltersStore((state) => state.setSelectedStates)
+  const setSelectedCuration = useFiltersStore((state) => state.setSelectedCuration)
 
   const filters = useMemo<OccurrenceFilters>(
     () => ({
@@ -30,6 +32,7 @@ export function useOccurrences(options: UseOccurrencesOptions = {}) {
       vectors: storeFilters.selectedVectors,
       hosts: storeFilters.selectedHosts,
       states: storeFilters.selectedStates,
+      curation: storeFilters.selectedCuration,
       ...options.filters,
     }),
     [
@@ -44,6 +47,7 @@ export function useOccurrences(options: UseOccurrencesOptions = {}) {
       storeFilters.selectedHosts,
       storeFilters.selectedVectors,
       storeFilters.selectedStates,
+      storeFilters.selectedCuration,
     ]
   )
 
@@ -58,22 +62,25 @@ export function useOccurrences(options: UseOccurrencesOptions = {}) {
   useEffect(() => {
     if (!query.data) return
 
-    const values = query.data.features.reduce(
-      (accumulator, feature) => {
-        accumulator.diseases.add(feature.properties.disease)
-        accumulator.vectors.add(feature.properties.vector)
-        if (feature.properties.parasite) {
-          accumulator.vectors.add(feature.properties.parasite)
+    const unlocated = query.data.unlocated ?? []
+    const values = [...query.data.features.map((feature) => feature.properties), ...unlocated].reduce(
+      (accumulator, properties) => {
+        accumulator.diseases.add(properties.disease)
+        accumulator.vectors.add(properties.vector)
+        if (properties.parasite) {
+          accumulator.vectors.add(properties.parasite)
         }
-        accumulator.hosts.add(feature.properties.host)
-        accumulator.states.add(feature.properties.state)
+        accumulator.hosts.add(properties.host)
+        accumulator.states.add(properties.state)
+        accumulator.curation.add(CURATION_LABELS[properties.curation])
         return accumulator
       },
       {
         diseases: new Set<string>(),
         vectors: new Set<string>(),
         hosts: new Set<string>(),
-        states: new Set<string>(),
+        states: new Set<string>(unlocated.length > 0 ? [UNLOCATED_LABEL] : []),
+        curation: new Set<string>(),
       }
     )
 
@@ -84,6 +91,7 @@ export function useOccurrences(options: UseOccurrencesOptions = {}) {
     const nextVectors = filterKnownValues(storeFilters.selectedVectors, values.vectors)
     const nextHosts = filterKnownValues(storeFilters.selectedHosts, values.hosts)
     const nextStates = filterKnownValues(storeFilters.selectedStates, values.states)
+    const nextCuration = filterKnownValues(storeFilters.selectedCuration, values.curation)
 
     if (nextDiseases.length !== storeFilters.selectedDiseases.length) {
       setSelectedDiseases(nextDiseases)
@@ -100,12 +108,18 @@ export function useOccurrences(options: UseOccurrencesOptions = {}) {
     if (nextStates.length !== storeFilters.selectedStates.length) {
       setSelectedStates(nextStates)
     }
+
+    if (nextCuration.length !== storeFilters.selectedCuration.length) {
+      setSelectedCuration(nextCuration)
+    }
   }, [
     query.data,
     setSelectedDiseases,
     setSelectedHosts,
     setSelectedStates,
     setSelectedVectors,
+    setSelectedCuration,
+    storeFilters.selectedCuration,
     storeFilters.selectedDiseases,
     storeFilters.selectedHosts,
     storeFilters.selectedStates,

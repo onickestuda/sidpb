@@ -115,8 +115,15 @@ public class SubmissionService {
 
     public SubmissionDetailDto getForUser(Integer id, Integer userId) { return detail(findForUser(id, userId)); }
     public SubmissionDetailDto get(Integer id) { return detail(find(id)); }
-    public Resource pdfForUser(Integer id, Integer userId) { return storage.load(findForUser(id, userId).getPdfPath()); }
-    public Resource pdf(Integer id) { return storage.load(find(id).getPdfPath()); }
+    public Resource pdfForUser(Integer id, Integer userId) { return storage.load(pdfPath(findForUser(id, userId))); }
+    public Resource pdf(Integer id) { return storage.load(pdfPath(find(id))); }
+
+    private static String pdfPath(SubmissaoArtigo submission) {
+        if (submission.getPdfPath() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Esta submissão veio de uma extração automática e não tem PDF anexado.");
+        }
+        return submission.getPdfPath();
+    }
 
     public SubmissaoArtigo find(Integer id) {
         return repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Submissão não encontrada."));
@@ -130,7 +137,7 @@ public class SubmissionService {
         return new SubmissionDetailDto(s.getId(), s.getTitulo(), s.getLinkOriginal(), s.getPdfNome(), s.getPdfTamanho(),
                 s.getStatus(), s.getCreatedAt(), s.getUpdatedAt(), person(s.getUsuario()), s.getDadosUsuario(), s.getDadosLlm(),
                 s.getExtractionStatus(), s.getExtractedAt(), s.getExtractionModel(), s.isExtractionMock(),
-                s.getDadosCurados(), person(s.getCurador()), s.getReviewedAt(), s.getRejectionReason());
+                s.getDadosCurados(), person(s.getCurador()), s.getReviewedAt(), s.getRejectionReason(), s.getOrigem());
     }
 
     public static void validateCoordinates(ArticleDataDto data) {

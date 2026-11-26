@@ -14,6 +14,7 @@ import com.nca.sistema_miiase_app.domain.entity.Local;
 import com.nca.sistema_miiase_app.domain.entity.Municipio;
 import com.nca.sistema_miiase_app.domain.entity.Ocorrencia;
 import com.nca.sistema_miiase_app.domain.repository.OcorrenciaRepository;
+import com.nca.sistema_miiase_app.service.extraction.ExtractionQueryService;
 import com.nca.sistema_miiase_app.dto.filter.ocorrencia.OcorrenciaFiltroDto;
 import com.nca.sistema_miiase_app.dto.response.mapa.MapDataResponseDto;
 import com.nca.sistema_miiase_app.dto.response.mapa.MapOccurrenceDto;
@@ -25,13 +26,16 @@ public class MapDataService {
 
     private final OcorrenciaRepository ocorrenciaRepository;
     private final OcorrenciaFiltroNormalizer ocorrenciaFiltroNormalizer;
+    private final ExtractionQueryService extracoes;
 
     public MapDataService(
             OcorrenciaRepository ocorrenciaRepository,
-            OcorrenciaFiltroNormalizer ocorrenciaFiltroNormalizer
+            OcorrenciaFiltroNormalizer ocorrenciaFiltroNormalizer,
+            ExtractionQueryService extracoes
     ) {
         this.ocorrenciaRepository = ocorrenciaRepository;
         this.ocorrenciaFiltroNormalizer = ocorrenciaFiltroNormalizer;
+        this.extracoes = extracoes;
     }
 
     public MapDataResponseDto buscarPontosMapa(OcorrenciaFiltroDto filtros) {
@@ -61,11 +65,14 @@ public class MapDataService {
         return new MapDataResponseDto(totalOcorrencias, pontos);
     }
 
+    /** Curated occurrences (normalized tables) plus LLM-extracted ones (not curated yet, or curated). */
     public List<MapOccurrenceDto> buscarOcorrenciasMapa() {
-        return ocorrenciaRepository.findOcorrenciasParaMapa()
+        List<MapOccurrenceDto> ocorrencias = new java.util.ArrayList<>(ocorrenciaRepository.findOcorrenciasParaMapa()
                 .stream()
                 .map(this::toMapOccurrenceDto)
-                .toList();
+                .toList());
+        ocorrencias.addAll(extracoes.mapOccurrences());
+        return ocorrencias;
     }
 
     private MapPointDto toMapPointDto(OcorrenciaRepository.PontoMapaProjection projection) {
@@ -80,6 +87,14 @@ public class MapDataService {
     }
 
     private MapOccurrenceDto toMapOccurrenceDto(Ocorrencia ocorrencia) {
+        MapOccurrenceDto dto = buildMapOccurrenceDto(ocorrencia);
+        Local local = ocorrencia.getLocal();
+        dto.setPrecisaoLocal(local != null && local.getLatitudeOcorrencia() != null ? "EXATA"
+                : dto.getLatitude() != null ? "MUNICIPIO" : "SEM_LOCAL");
+        return dto;
+    }
+
+    private MapOccurrenceDto buildMapOccurrenceDto(Ocorrencia ocorrencia) {
         Local local = ocorrencia.getLocal();
         Municipio municipio = local == null ? null : local.getMunicipio();
 

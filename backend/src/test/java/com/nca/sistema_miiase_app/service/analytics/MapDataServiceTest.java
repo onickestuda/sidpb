@@ -1,4 +1,5 @@
 package com.nca.sistema_miiase_app.service.analytics;
+import com.nca.sistema_miiase_app.service.extraction.ExtractionQueryService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -27,6 +28,9 @@ class MapDataServiceTest {
 
     @Mock
     private OcorrenciaFiltroNormalizer ocorrenciaFiltroNormalizer;
+
+    @Mock
+    private ExtractionQueryService extractionQueryService;
 
     @InjectMocks
     private MapDataService mapDataService;

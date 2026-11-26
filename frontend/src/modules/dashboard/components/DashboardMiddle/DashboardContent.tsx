@@ -37,6 +37,7 @@ export function DashboardContent({
     <section data-dashboard-map-layout className="flex min-h-0 min-w-0 flex-1 overflow-hidden bg-background">
       <DashboardLeftSidebar
         occurrences={occurrenceList}
+        unlocated={occurrences?.unlocated}
       />
 
       <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">

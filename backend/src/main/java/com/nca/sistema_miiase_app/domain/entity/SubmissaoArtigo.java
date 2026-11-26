@@ -20,14 +20,18 @@ public class SubmissaoArtigo {
     private Usuario usuario;
     @Column(nullable = false, length = 500)
     private String titulo;
-    @Column(name = "link_original", nullable = false, length = 1000)
+    @Column(name = "link_original", length = 1000)
     private String linkOriginal;
-    @Column(name = "pdf_path", nullable = false, length = 100)
+    @Column(name = "pdf_path", length = 100)
     private String pdfPath;
-    @Column(name = "pdf_nome", nullable = false, length = 255)
+    @Column(name = "pdf_nome", length = 255)
     private String pdfNome;
-    @Column(name = "pdf_tamanho", nullable = false)
-    private long pdfTamanho;
+    // Null for automatic extractions (no PDF upload); required for user submissions (DB constraint).
+    @Column(name = "pdf_tamanho")
+    private Long pdfTamanho;
+    /** USUARIO (manual upload) or EXTRACAO (received from the LLM pipeline). */
+    @Column(nullable = false, length = 20)
+    private String origem = "USUARIO";
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20)
     private SubmissaoStatus status = SubmissaoStatus.PENDING;
     private Integer ano;

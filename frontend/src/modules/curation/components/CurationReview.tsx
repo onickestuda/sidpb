@@ -17,6 +17,7 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { SubmissionOverview } from "@/modules/submissions/components/SubmissionOverview";
 import { ArticleFields, EMPTY_ARTICLE, articleToForm, formToArticle, type ArticleFormValues } from "@/modules/submissions/components/ArticleFields";
 import { curationService } from "../services/curation.service";
+import { ExtractionPanel } from "./ExtractionPanel";
 import { ApiError } from "@/lib/apiClient";
 
 export function CurationReview({ id }: { id: number }) {
@@ -58,6 +59,7 @@ export function CurationReview({ id }: { id: number }) {
     {query.isError && <p role="alert" className="text-destructive">Não foi possível abrir esta submissão.</p>}
     {query.data && <>
       <SubmissionOverview submission={query.data} pdfUrl={curationService.pdfUrl(id)} comparison />
+      {query.data.origin === "EXTRACAO" && <ExtractionPanel submissionId={id} />}
       {query.data.status === "PENDING" && <Card>
         <CardHeader><CardTitle><h3>Decisão de curadoria</h3></CardTitle></CardHeader>
         <CardContent>

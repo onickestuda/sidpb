@@ -4,7 +4,7 @@ import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { basePath } from "@/lib/publicConfig"
 import { LegendItem } from "@/modules/map/components/MapLegend/LegendItem"
-import { defaultIcon, searchedLocationIcon } from "@/modules/map/components/LeafletMap/map-icons"
+import { defaultIcon, searchedLocationIcon, uncuratedIcon } from "@/modules/map/components/LeafletMap/map-icons"
 import { CLUSTER_COUNT_BANDS } from "@/modules/map/components/LeafletMap/occurrence-cluster"
 
 interface MapLegendProps {
@@ -27,7 +27,8 @@ export function MapLegend({ onClose }: MapLegendProps) {
         </Button>
       </div>
       <div className="space-y-2.5">
-        <LegendItem marker={<Pin src={defaultIcon.options.iconUrl} alt="" />} label="Ocorrência" />
+        <LegendItem marker={<Pin src={defaultIcon.options.iconUrl} alt="" />} label="Ocorrência curada" />
+        <LegendItem marker={<Pin src={uncuratedIcon.options.iconUrl} alt="" />} label="Não curada (extração automática)" />
         <LegendItem
           marker={<span className="size-4 shrink-0 rounded-full border-[3px] border-[#1B5E20] bg-[#1B5E20]/15" />}
           label="Ocorrência selecionada"

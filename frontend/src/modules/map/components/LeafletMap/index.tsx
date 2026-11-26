@@ -16,7 +16,7 @@ import type { LeafletMapProps } from "./leaflet-map.types";
 import { MapInstance } from "./MapInstance";
 import { MapMover } from "./MapMover";
 import { MapTelemetry } from "./MapTelemetry";
-import { defaultIcon } from "./map-icons";
+import { defaultIcon, uncuratedIcon } from "./map-icons";
 import { SearchMarker } from "./SearchedMarker";
 import {
   MIN_ZOOM,
@@ -95,7 +95,7 @@ export default function LeafletMap({
     <OccurrenceMarker
       key={occurrence.id}
       occurrence={occurrence}
-      icon={defaultIcon}
+      icon={occurrence.curation === "NAO_CURADA" ? uncuratedIcon : defaultIcon}
       selectedOccurrence={selectedOccurrence}
       onOccurrenceClick={onOccurrenceClick}
       onMarkerRef={(marker) => {

@@ -87,3 +87,6 @@ Thumbs.db
 ### Shapefiles IBGE (>100 MB; baixar do IBGE, ver infra/database/README.md) ###
 infra/database/ibge/shapefiles_ibge/
 
+
+### Backups locais do banco ###
+/backups/

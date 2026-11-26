@@ -27,7 +27,7 @@ export function SubmissionTable({ data, mode, onPage, isFetching }: {
             <TableRow key={item.id}>
               <TableCell className="max-w-sm whitespace-normal">
                 <Link className="font-medium text-primary underline underline-offset-4" href={`${base}/submissoes/${item.id}`}>{item.title}</Link>
-                {mode === "curator" && <a className="mt-1 block text-xs text-muted-foreground underline" href={item.originalLink} target="_blank" rel="noopener noreferrer">Fonte original</a>}
+                {mode === "curator" && (item.originalLink ? <a className="mt-1 block text-xs text-muted-foreground underline" href={item.originalLink} target="_blank" rel="noopener noreferrer">Fonte original</a> : <span className="mt-1 block text-xs text-muted-foreground">Extração automática</span>)}
               </TableCell>
               <TableCell>{formatDate(item.createdAt)}</TableCell>
               {mode === "curator" && <TableCell>{item.submittedBy.name}</TableCell>}

@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 
-import type { Occurrence } from "@/entities/occurrence/occurrence.types";
+import type { Occurrence, OccurrenceProperties } from "@/entities/occurrence/occurrence.types";
+import { CURATION_LABELS, UNLOCATED_LABEL } from "@/entities/occurrence/occurrence.types";
 
 export interface DashboardFilterOption {
   label: string;
@@ -14,6 +15,7 @@ export interface DashboardFilterOptions {
   vectors: DashboardFilterOption[];
   hosts: DashboardFilterOption[];
   states: DashboardFilterOption[];
+  curation: DashboardFilterOption[];
 }
 
 function createOptions(
@@ -43,10 +45,13 @@ function createOptions(
 }
 
 export function useDashboardFilterOptions(
-  occurrences: Occurrence[] = []
+  located: Occurrence[] = [],
+  unlocated: OccurrenceProperties[] = []
 ): DashboardFilterOptions {
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    // Occurrences without a point still count in every facet; their location is its own option.
+    const occurrences: OccurrenceProperties[] = [...located, ...unlocated];
+    return {
       diseases: createOptions(
         occurrences.map(
           (occurrence) => occurrence.disease
@@ -65,12 +70,14 @@ export function useDashboardFilterOptions(
         )
       ),
 
-      states: createOptions(
-        occurrences.map(
-          (occurrence) => occurrence.state
-        )
+      states: [
+        ...createOptions(located.map((occurrence) => occurrence.state)),
+        ...(unlocated.length > 0 ? [{ label: UNLOCATED_LABEL, count: unlocated.length }] : []),
+      ],
+
+      curation: createOptions(
+        occurrences.map((occurrence) => CURATION_LABELS[occurrence.curation])
       ),
-    }),
-    [occurrences]
-  );
+    };
+  }, [located, unlocated]);
 }

@@ -1,4 +1,4 @@
-import type { ArticleData, CurationFilters, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
+import type { ArticleData, ExtractionDetail, CurationFilters, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
 import { apiUrl, apiRequest } from "@/lib/apiClient";
 
 export const curationService = {
@@ -17,6 +17,9 @@ export const curationService = {
     return apiRequest<SubmissionDetail>(`/api/curation/submissions/${id}/reject`, {
       method: "POST", body: { curatorId, reason },
     });
+  },
+  extraction(id: number, signal?: AbortSignal) {
+    return apiRequest<ExtractionDetail>(`/api/curation/submissions/${id}/extracao`, { signal });
   },
   pdfUrl(id: number) { return apiUrl(`/api/curation/submissions/${id}/pdf`); },
 };

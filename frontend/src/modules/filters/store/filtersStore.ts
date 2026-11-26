@@ -6,6 +6,8 @@ interface FiltersState {
   selectedVectors: string[];
   selectedHosts: string[];
   selectedStates: string[];
+  /** "Curadas" / "Não curadas" (see CURATION_LABELS). */
+  selectedCuration: string[];
 
   setSelectedDiseases(diseases: string[]): void;
   setSelectedVectors(vectors: string[]): void;
@@ -16,6 +18,8 @@ interface FiltersState {
   toggleVector(vector: string): void;
   toggleHost(host: string): void;
   toggleState(state: string): void;
+  setSelectedCuration(curation: string[]): void;
+  toggleCuration(curation: string): void;
 
   resetFilters(): void;
   clearFilters(): void;
@@ -28,6 +32,7 @@ const initialState = {
   selectedVectors: [],
   selectedHosts: [],
   selectedStates: [],
+  selectedCuration: [],
 };
 
 function toggleArrayItem(
@@ -109,6 +114,13 @@ export const useFiltersStore =
               ),
           })),
 
+        setSelectedCuration: (selectedCuration) => set({ selectedCuration }),
+
+        toggleCuration: (curation) =>
+          set((state) => ({
+            selectedCuration: toggleArrayItem(state.selectedCuration, curation),
+          })),
+
         resetFilters: () =>
           set({
             ...initialState,
@@ -131,6 +143,8 @@ export const useFiltersStore =
             state.selectedHosts,
           selectedStates:
             state.selectedStates,
+          selectedCuration:
+            state.selectedCuration,
         }),
       }
     )

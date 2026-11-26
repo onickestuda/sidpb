@@ -24,7 +24,8 @@ export interface SubmissionPerson { id: number; name: string; code?: string | nu
 export interface SubmissionSummary {
   id: number;
   title: string;
-  originalLink: string;
+  /** Null for automatic extractions. */
+  originalLink: string | null;
   status: SubmissionStatus;
   createdAt: string;
   submittedBy: SubmissionPerson;
@@ -34,8 +35,11 @@ export interface SubmissionSummary {
 
 export interface SubmissionDetail extends SubmissionSummary {
   updatedAt: string;
-  pdfName: string;
-  pdfSize: number;
+  /** Null for automatic extractions (no PDF upload). */
+  pdfName: string | null;
+  pdfSize: number | null;
+  /** USUARIO (manual upload) or EXTRACAO (received from the LLM pipeline). */
+  origin?: "USUARIO" | "EXTRACAO";
   userData: ArticleData;
   llmData: ArticleData | null;
   extractionStatus: ExtractionStatus;
@@ -44,6 +48,22 @@ export interface SubmissionDetail extends SubmissionSummary {
   extractionMock: boolean;
   curatedData: ArticleData | null;
   rejectionReason: string | null;
+}
+
+export type ExtractionQuality = "VALIDA" | "PARCIAL" | "ILEGIVEL";
+
+export interface ExtractedOccurrence {
+  id: number; order: number; curationStatus: "NAO_CURADA" | "CURADA" | "REPROVADA";
+  disease: string | null; diseaseOriginal: string | null; parasite: string | null; vector: string | null;
+  host: string | null; hostCategory: string | null; locationText: string | null; municipality: string | null;
+  state: string | null; locationPrecision: "EXATA" | "MUNICIPIO" | "ESTADO" | "SEM_LOCAL";
+  latitude: number | null; longitude: number | null; year: number | null; others: Record<string, unknown>;
+}
+
+export interface ExtractionDetail {
+  submissionId: number; externalId: string; model: string | null; quality: ExtractionQuality;
+  occurrencesRead: number; readingNote: string | null; receivedAt: string; rawContent: string;
+  occurrences: ExtractedOccurrence[];
 }
 
 export interface SubmissionPage {

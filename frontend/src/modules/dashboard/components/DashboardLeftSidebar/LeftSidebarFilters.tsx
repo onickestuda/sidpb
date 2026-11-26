@@ -46,11 +46,21 @@ export function LeftSidebarFilters({
     (state) => state.toggleState
   );
 
+  const selectedCuration = useFiltersStore((state) => state.selectedCuration);
+  const toggleCuration = useFiltersStore((state) => state.toggleCuration);
+
   const clearFilters = useFiltersStore(
     (state) => state.clearFilters
   );
 
   const sections = [
+    {
+      key: "curation" as const,
+      title: "Curadoria",
+      options: options.curation ?? [],
+      selected: selectedCuration,
+      toggle: toggleCuration,
+    },
     {
       key: "diseases" as const,
       title: "Doenças",
@@ -85,7 +95,8 @@ export function LeftSidebarFilters({
     selectedDiseases.length > 0 ||
     selectedVectors.length > 0 ||
     selectedHosts.length > 0 ||
-    selectedStates.length > 0;
+    selectedStates.length > 0 ||
+    selectedCuration.length > 0;
 
   return (
     <div>

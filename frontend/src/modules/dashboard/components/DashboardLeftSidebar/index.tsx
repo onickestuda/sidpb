@@ -1,6 +1,6 @@
 "use client";
 
-import type { Occurrence } from "@/entities/occurrence/occurrence.types";
+import type { Occurrence, OccurrenceProperties } from "@/entities/occurrence/occurrence.types";
 
 import { useDashboardFilterOptions } from "../../hooks/useDashboardFilterOptions";
 
@@ -9,13 +9,15 @@ import { LeftSidebarTools } from "./LeftSidebarTools";
 
 interface DashboardLeftSidebarProps {
   occurrences: Occurrence[];
+  unlocated?: OccurrenceProperties[];
 }
 
 export function DashboardLeftSidebar({
   occurrences,
+  unlocated = [],
 }: DashboardLeftSidebarProps) {
   const filterOptions =
-    useDashboardFilterOptions(occurrences);
+    useDashboardFilterOptions(occurrences, unlocated);
 
   return (
     <aside className="flex h-full w-72 shrink-0 flex-col border-r border-border bg-background">

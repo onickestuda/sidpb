@@ -67,7 +67,7 @@ const activeBadges = () => [...renderFilters().matchAll(/aria-label="(\d+) filtr
 test('all filter sections start collapsed, including Diseases with existing selections', () => {
   useFiltersStore.getState().setSelectedDiseases(['Doença A']);
   const html = renderFilters();
-  assert.equal([...html.matchAll(/aria-expanded="false"/g)].length, 4);
+  assert.equal([...html.matchAll(/aria-expanded="false"/g)].length, 5, 'Curadoria, Doenças, Agentes, Hospedeiros, Estados');
   assert.doesNotMatch(html, /type="checkbox"/);
   assert.deepEqual(useFiltersStore.getState().selectedDiseases, ['Doença A']);
   assert.deepEqual(activeBadges(), [1]);

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, MapPinOff } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 
@@ -41,10 +41,15 @@ export function DashboardMap({
     () => occurrences?.features.map(occurrenceFeatureToOccurrence) ?? [],
     [occurrences]
   );
+  // No point on the map is ever invented for these: they are listed from a fixed notice instead.
+  const unlocatedList = useMemo(
+    () => (occurrences?.unlocated ?? []).map((properties) => ({ ...properties, coordinates: [Number.NaN, Number.NaN] as [number, number] })),
+    [occurrences]
+  );
 
   useEffect(() => {
-    if (occurrences) reconcileOccurrenceSelection(occurrenceList);
-  }, [occurrences, occurrenceList, reconcileOccurrenceSelection]);
+    if (occurrences) reconcileOccurrenceSelection([...occurrenceList, ...unlocatedList]);
+  }, [occurrences, occurrenceList, unlocatedList, reconcileOccurrenceSelection]);
 
   return (
     <div className="absolute inset-0">
@@ -80,6 +85,20 @@ export function DashboardMap({
             <p className="text-sm text-muted-foreground">{emptyMessage}</p>
           )}
         </div>
+      )}
+
+      {!isLoading && !error && unlocatedList.length > 0 && (
+        <button
+          type="button"
+          onClick={() => selectOccurrences(unlocatedList)}
+          className="absolute bottom-8 left-4 z-20 flex items-center gap-2 border border-amber-300 bg-background px-3 py-2 text-left text-xs shadow-lg hover:bg-amber-50"
+        >
+          <MapPinOff className="size-4 shrink-0 text-amber-700" aria-hidden />
+          <span>
+            <span className="font-semibold">{unlocatedList.length} {unlocatedList.length === 1 ? "ocorrência" : "ocorrências"} sem local confirmado</span>
+            <span className="block text-muted-foreground">Não aparecem no mapa · ver lista</span>
+          </span>
+        </button>
       )}
 
       {!isLoading && !error && !emptyMessage && invalidCoordinatesCount > 0 && (

@@ -18,12 +18,13 @@ export function SubmissionOverview({ submission: s, pdfUrl, comparison }: { subm
           <CurationStamp status={s.status} submittedBy={s.submittedBy} reviewedBy={s.reviewedBy} reviewedAt={s.reviewedAt} />
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
-          <Button asChild><a href={s.originalLink} target="_blank" rel="noopener noreferrer">Abrir artigo original</a></Button>
-          <Button asChild variant="outline"><a href={pdfUrl} target="_blank" rel="noopener noreferrer">Visualizar PDF</a></Button>
-          <span className="self-center break-all text-sm text-muted-foreground">{s.pdfName} · {formatFileSize(s.pdfSize)}</span>
+          {s.originalLink && <Button asChild><a href={s.originalLink} target="_blank" rel="noopener noreferrer">Abrir artigo original</a></Button>}
+          {s.pdfName && <Button asChild variant="outline"><a href={pdfUrl} target="_blank" rel="noopener noreferrer">Visualizar PDF</a></Button>}
+          {s.pdfName && <span className="self-center break-all text-sm text-muted-foreground">{s.pdfName} · {formatFileSize(s.pdfSize ?? 0)}</span>}
+          {s.origin === "EXTRACAO" && <span className="self-center text-sm text-muted-foreground">Recebida do pipeline de extração automática · sem PDF anexado</span>}
         </CardContent>
       </Card>
-      <div className={comparison ? "grid gap-6 lg:grid-cols-2" : ""}>
+      {s.origin !== "EXTRACAO" && <div className={comparison ? "grid gap-6 lg:grid-cols-2" : ""}>
         <Card><CardHeader><CardTitle><h3>Dados informados pelo usuário</h3></CardTitle></CardHeader>
           <CardContent><ArticleDataView data={s.userData} compare={comparison ? s.llmData : null} /></CardContent>
         </Card>
@@ -35,7 +36,7 @@ export function SubmissionOverview({ submission: s, pdfUrl, comparison }: { subm
             {s.llmData ? <ArticleDataView data={s.llmData} compare={s.userData} /> : <p className="text-sm text-muted-foreground">Sem dados de extração disponíveis.</p>}
           </CardContent>
         </Card>}
-      </div>
+      </div>}
       {s.status !== "PENDING" && <Card>
         <CardHeader><CardTitle><h3>Resultado da curadoria</h3></CardTitle></CardHeader>
         <CardContent className="space-y-4">

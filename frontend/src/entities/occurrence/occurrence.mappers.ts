@@ -5,27 +5,13 @@ import type {
   OccurrenceFeature,
   OccurrenceFeatureCollection,
   OccurrenceFilters,
+  OccurrenceProperties,
 } from "@/entities/occurrence/occurrence.types"
+import { CURATION_LABELS, UNLOCATED_LABEL } from "./occurrence.types"
 
 export function occurrenceFeatureToOccurrence(feature: OccurrenceFeature): Occurrence {
   const [lon, lat] = feature.geometry.coordinates
-
-  return {
-    id: feature.properties.id,
-    coordinates: [lon, lat],
-    city: feature.properties.city,
-    state: feature.properties.state,
-    disease: feature.properties.disease,
-    vector: feature.properties.vector,
-    parasite: feature.properties.parasite,
-    date: feature.properties.date,
-    host: feature.properties.host,
-    hostCategory: feature.properties.hostCategory,
-    hostSex: feature.properties.hostSex,
-    hostAge: feature.properties.hostAge,
-    outcome: feature.properties.outcome,
-    articles: feature.properties.articles,
-  }
+  return { ...feature.properties, coordinates: [lon, lat] }
 }
 
 export function occurrenceCollectionToOccurrences(
@@ -92,56 +78,91 @@ function hasValidCoordinates(latitude: number | null, longitude: number | null) 
   )
 }
 
+function dtoToProperties(dto: MapOccurrenceDto): OccurrenceProperties {
+  const hasPoint = hasValidCoordinates(toNumber(dto.latitude), toNumber(dto.longitude))
+  return {
+    id: dto.chave ?? String(dto.idOcorrencia),
+    disease: dto.doencaNomeCientifico ?? "Não informado",
+    vector: dto.vetorNomeCientifico ?? "",
+    parasite: dto.parasitoNomeCientifico ?? undefined,
+    date: dto.dataOcorrencia ?? "",
+    city: dto.cidade ?? "Município não informado",
+    state: dto.uf ?? "UF não informada",
+    host: dto.hospedeiroEspecie ?? "Não informado",
+    hostCategory: dto.categoriaHospedeiro ?? "Não informado",
+    outcome: dto.desfecho ?? undefined,
+    curation: dto.curadoria ?? "CURADA",
+    locationPrecision: dto.precisaoLocal ?? (hasPoint ? "EXATA" : "SEM_LOCAL"),
+    submissionId: dto.idSubmissao ?? undefined,
+    extractionModel: dto.modeloExtracao ?? undefined,
+    extras: dto.outros ?? {},
+    articles: (dto.fontes ?? []).map(sourceToArticle),
+  }
+}
+
 export function mapOccurrenceDtoToFeature(dto: MapOccurrenceDto): OccurrenceFeature | null {
   const latitude = toNumber(dto.latitude)
   const longitude = toNumber(dto.longitude)
-
-  if (
-    latitude === null ||
-    longitude === null ||
-    !hasValidCoordinates(latitude, longitude)
-  ) {
-    return null
-  }
-
-  const parasite = dto.parasitoNomeCientifico ?? undefined
-  const vector = dto.vetorNomeCientifico ?? ""
+  if (latitude === null || longitude === null || !hasValidCoordinates(latitude, longitude)) return null
 
   return {
     type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [longitude, latitude],
-    },
-    properties: {
-      id: String(dto.idOcorrencia),
-      disease: dto.doencaNomeCientifico ?? "Nao informado",
-      vector,
-      parasite,
-      date: dto.dataOcorrencia ?? "",
-      city: dto.cidade ?? "Municipio nao informado",
-      state: dto.uf ?? "UF nao informada",
-      host: dto.hospedeiroEspecie ?? "Nao informado",
-      hostCategory: dto.categoriaHospedeiro ?? "Nao informado",
-      outcome: dto.desfecho ?? undefined,
-      articles: (dto.fontes ?? []).map(sourceToArticle),
-    },
+    geometry: { type: "Point", coordinates: [longitude, latitude] },
+    properties: dtoToProperties(dto),
   }
 }
 
 export function mapOccurrenceDtosToFeatureCollection(
   occurrences: MapOccurrenceDto[]
 ): OccurrenceFeatureCollection {
-  const features = occurrences
-    .map(mapOccurrenceDtoToFeature)
-    .filter((feature): feature is OccurrenceFeature => Boolean(feature))
+  const features: OccurrenceFeature[] = []
+  const unlocated: OccurrenceProperties[] = []
+  for (const dto of occurrences) {
+    const feature = mapOccurrenceDtoToFeature(dto)
+    if (feature) features.push(feature)
+    else unlocated.push(dtoToProperties(dto))
+  }
 
   return {
     type: "FeatureCollection",
     features,
+    unlocated,
     totalOccurrences: occurrences.length,
-    invalidCoordinatesCount: occurrences.length - features.length,
+    // Occurrences known to have no point are listed apart; only unexpected gaps count as invalid.
+    invalidCoordinatesCount: unlocated.filter((item) => item.locationPrecision === "EXATA" || item.locationPrecision === "MUNICIPIO").length,
   }
+}
+
+function matchesFilters(properties: OccurrenceProperties, filters: OccurrenceFilters, search: string, located: boolean) {
+  const states = filters.states ?? []
+  const wantsUnlocated = states.includes(UNLOCATED_LABEL)
+  const realStates = states.filter((state) => state !== UNLOCATED_LABEL)
+  const stateMatches = located
+    ? realStates.length === 0 ? !wantsUnlocated : includesAny(properties.state, realStates)
+    : states.length === 0 || wantsUnlocated
+
+  return (
+    includesAny(properties.disease, filters.diseases) &&
+    (!filters.vectors?.length ||
+      includesAny(properties.vector, filters.vectors) ||
+      includesAny(properties.parasite, filters.vectors)) &&
+    includesAny(properties.host, filters.hosts) &&
+    stateMatches &&
+    (!filters.curation?.length || filters.curation.includes(CURATION_LABELS[properties.curation])) &&
+    (!filters.articles?.length ||
+      properties.articles.some((article) => filters.articles?.includes(article.id))) &&
+    (!search ||
+      foldText(
+        [
+          properties.city,
+          properties.state,
+          properties.disease,
+          properties.vector,
+          properties.parasite,
+          properties.host,
+        ].join(" ")
+      ).includes(search))
+  )
 }
 
 export function filterOccurrenceCollection(
@@ -151,34 +172,9 @@ export function filterOccurrenceCollection(
   if (!collection) return null
 
   const search = filters.search ? foldText(filters.search.trim()) : ""
-  const features = collection.features.filter((feature) => {
-    const properties = feature.properties
-
-    return (
-      includesAny(properties.disease, filters.diseases) &&
-      (!filters.vectors?.length ||
-        includesAny(properties.vector, filters.vectors) ||
-        includesAny(properties.parasite, filters.vectors)) &&
-      includesAny(properties.host, filters.hosts) &&
-      includesAny(properties.state, filters.states) &&
-      (!filters.articles?.length ||
-        properties.articles.some((article) => filters.articles?.includes(article.id))) &&
-      (!search ||
-        foldText(
-          [
-            properties.city,
-            properties.state,
-            properties.disease,
-            properties.vector,
-            properties.parasite,
-            properties.host,
-          ].join(" ")
-        ).includes(search))
-    )
-  })
-
   return {
     ...collection,
-    features,
+    features: collection.features.filter((feature) => matchesFilters(feature.properties, filters, search, true)),
+    unlocated: (collection.unlocated ?? []).filter((properties) => matchesFilters(properties, filters, search, false)),
   }
 }

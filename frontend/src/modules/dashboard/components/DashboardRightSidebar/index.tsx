@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Occurrence } from "@/entities/occurrence/occurrence.types";
 import { useMapStore } from "@/modules/map/store/mapStore";
 import { OccurrenceDetails } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceDetails";
+import { OccurrenceCurationNote, OccurrenceExtras } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceProvenance";
 import { OccurrenceSources } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceSources";
 import {
   OCCURRENCES_PER_PAGE,
@@ -95,6 +96,7 @@ export function DashboardRightSidebar({ occurrences }: { occurrences: Occurrence
                 onClick={() => selectOccurrence(occurrence)}
                 className="block w-full space-y-2 p-3 text-left hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-primary">
                 <h3 className="text-sm font-semibold">{occurrenceField(occurrence.disease) ?? `Ocorrência #${occurrence.id}`}</h3>
+                <OccurrenceCurationNote occurrence={occurrence} />
                 <p className="text-xs text-muted-foreground">
                   {[occurrenceLocation(occurrence), formatOccurrenceDisplayDate(occurrence.date)].filter(Boolean).join(" · ")}
                 </p>
@@ -123,6 +125,7 @@ export function DashboardRightSidebar({ occurrences }: { occurrences: Occurrence
               {expanded && (
                 <div id={`occurrence-details-${occurrence.id}`} className="border-t border-border p-3">
                   <OccurrenceDetails occurrence={occurrence} />
+                  <OccurrenceExtras extras={occurrence.extras ?? {}} />
                 </div>
               )}
             </article>

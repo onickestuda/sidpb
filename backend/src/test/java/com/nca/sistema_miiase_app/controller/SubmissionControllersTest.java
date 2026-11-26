@@ -114,6 +114,6 @@ class SubmissionControllersTest {
         var article = new ArticleDataDto("Artigo", List.of(), null, null, null, null, null, null, null, null, null, null, null, null);
         var time = Instant.parse("2026-10-07T12:00:00Z");
         return new SubmissionDetailDto(7, "Artigo", "https://example.org", "artigo.pdf", 100L, SubmissaoStatus.PENDING,
-                time, time, new PersonDto(3, "Usuário", "A1B2C3"), article, article, ExtractionStatus.COMPLETED, time, "mock", true, null, null, null, null);
+                time, time, new PersonDto(3, "Usuário", "A1B2C3"), article, article, ExtractionStatus.COMPLETED, time, "mock", true, null, null, null, null, "USUARIO");
     }
 }
