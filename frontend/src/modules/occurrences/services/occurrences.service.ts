@@ -7,55 +7,18 @@ import {
 import type {
   MapOccurrenceDto,
   OccurrenceFeatureCollection,
-  OccurrenceFeature,
   OccurrenceFilters,
 } from "@/entities/occurrence/occurrence.types"
-import { mockGeoJsonData } from "@/features/articles/data/articles.mock"
-import { ApiError, apiRequest } from "@/services/apiClient"
+import { apiRequest } from "@/services/apiClient"
 
-function getMockDashboardOccurrences(): OccurrenceFeatureCollection {
-  const features: OccurrenceFeature[] = mockGeoJsonData.features.map((feature) => ({
-    type: "Feature",
-    geometry: {
-      type: "Point",
-      coordinates: [...feature.geometry.coordinates],
-    },
-    properties: {
-      ...feature.properties,
-      articles: feature.properties.articles.map((article) => ({ ...article })),
-    },
-  }))
-
-  return {
-    type: "FeatureCollection",
-    features,
-    totalOccurrences: features.length,
-    invalidCoordinatesCount: 0,
-  }
-}
-
+// Falhas da API sobem para a interface, que exibe o estado de erro do mapa.
+// Nunca substituir por dados ficticios: o mapa apresenta dados cientificos.
 export async function fetchDashboardOccurrences(signal?: AbortSignal) {
-  try {
-    const occurrences = await apiRequest<MapOccurrenceDto[]>("/api/mapa/ocorrencias", {
-      signal,
-    })
+  const occurrences = await apiRequest<MapOccurrenceDto[]>("/api/mapa/ocorrencias", {
+    signal,
+  })
 
-    return mapOccurrenceDtosToFeatureCollection(occurrences)
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw error
-    }
-
-    console.error("Erro tecnico ao carregar ocorrencias do mapa.", error)
-
-    if (error instanceof ApiError && error.status > 0) {
-      console.warn(`Usando ocorrencias mockadas. API respondeu HTTP ${error.status}.`)
-      return getMockDashboardOccurrences()
-    }
-
-    console.warn("Usando ocorrencias mockadas. Nao foi possivel conectar a API de ocorrencias.")
-    return getMockDashboardOccurrences()
-  }
+  return mapOccurrenceDtosToFeatureCollection(occurrences)
 }
 
 export function applyOccurrenceFilters(
