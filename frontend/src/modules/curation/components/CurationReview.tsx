@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { SubmissionOverview } from "@/modules/submissions/components/SubmissionOverview";
+import { ArticleDataView } from "@/modules/submissions/components/ArticleDataView";
 import { ARTICLE_ONLY_FIELDS, ArticleFields, EMPTY_ARTICLE, articleToForm, formToArticle, type ArticleFormValues } from "@/modules/submissions/components/ArticleFields";
 import { curationService } from "../services/curation.service";
 import { OccurrenceCuration } from "./OccurrenceCuration";
@@ -79,22 +80,30 @@ export function CurationReview({ id }: { id: number }) {
     {query.isPending && <p role="status">Carregando artigo...</p>}
     {query.isError && <p role="alert" className="text-destructive">Não foi possível abrir esta submissão.</p>}
     {query.data && <>
-      <SubmissionOverview submission={query.data} pdfUrl={curationService.pdfUrl(id)} showSuggestions={false} />
+      <SubmissionOverview submission={query.data} pdfUrl={curationService.pdfUrl(id)} showSuggestions={false} showSourceData={query.data.status !== "PENDING"} />
       {query.data.status === "PENDING" && <Card>
         <CardHeader><CardTitle><h3>Decisão de curadoria</h3></CardTitle></CardHeader>
         <CardContent>
           <form className="space-y-8" onSubmit={form.handleSubmit(() => { setError(null); setDecision("approve"); })}>
             <section className="space-y-4" aria-labelledby="curation-article">
-              <h4 id="curation-article" className="font-semibold">Dados do artigo</h4>
-              <ArticleFields form={form} prefix="curated" fields={ARTICLE_ONLY_FIELDS} disabled={mutation.isPending} />
+              <h4 id="curation-article" className="font-semibold">Dados da fonte</h4>
+              <div className={`grid items-start gap-6 ${query.data.origin === "EXTRACAO" ? "" : "lg:grid-cols-2"}`}>
+                {query.data.origin !== "EXTRACAO" && (
+                  <div className="min-w-0 space-y-2">
+                    <h5 className="border-b border-border pb-2 text-sm font-semibold">Submetida</h5>
+                    <ArticleDataView data={query.data.userData} fields="source" />
+                  </div>
+                )}
+                <div className="min-w-0 space-y-2">
+                  <h5 className="border-b border-border pb-2 text-sm font-semibold">Registro final</h5>
+                  <ArticleFields form={form} prefix="curated" fields={ARTICLE_ONLY_FIELDS} disabled={mutation.isPending} />
+                </div>
+              </div>
             </section>
 
             <section className="space-y-4" aria-labelledby="curation-occurrences">
               <div className="space-y-1">
-                <h4 id="curation-occurrences" className="font-semibold">Ocorrências</h4>
-                <p className="text-sm text-muted-foreground">
-                  Compare a sugestão do usuário e a extração automática; só as ocorrências da coluna do curador ficam no sistema e no mapa.
-                </p>
+                <h4 id="curation-occurrences" className="font-semibold">Comparação de ocorrências</h4>
               </div>
               {extraction.isError && <p role="alert" className="text-sm text-destructive">Não foi possível carregar a extração automática.</p>}
               {drafts === null

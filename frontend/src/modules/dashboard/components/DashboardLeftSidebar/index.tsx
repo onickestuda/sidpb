@@ -20,7 +20,7 @@ export function DashboardLeftSidebar({
     useDashboardFilterOptions(occurrences, unlocated);
 
   return (
-    <aside className="flex h-full w-72 shrink-0 flex-col border-r border-border bg-background">
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-border bg-background">
       <div className="shrink-0">
         <LeftSidebarTools />
       </div>

@@ -3,6 +3,7 @@
 import { chromium } from '../../frontend/node_modules/playwright/index.mjs';
 import { configure } from './configure-auth.mjs';
 import { configureIdentity } from './configure-identity.mjs';
+import { configurePipeline } from './configure-pipeline.mjs';
 import { env, publicUrls } from '../local-env.mjs';
 const { kc, app } = publicUrls();
 // Never generate/rotate secrets as a side effect of inspection or configuration.
@@ -28,15 +29,11 @@ try {
         attributes: { ...client.attributes, 'post.logout.redirect.uris': app + '/' } }) });
     if (!response.ok) throw new Error('Unable to update client URLs');
     console.log('Updated only existing sidpb-web URLs; realm, users, secrets and roles preserved.');
+  } else if (process.argv.includes('--pipeline')) {
+    // Machine client of the extraction worker (role PIPELINE, audience sidpb-api); secret left untouched.
+    await configurePipeline(realmApi());
   } else if (process.argv.includes('--identity') || process.argv.includes('--inspect-identity')) {
-    const api = async (method, path, body) => {
-      const response = await fetch(`${kc}/admin/realms/sidpb${path}`, {
-        method, headers: { Authorization: `Bearer ${env.KC_ADMIN_TOKEN}`, 'Content-Type': 'application/json' },
-        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      });
-      if (!response.ok) throw new Error(`${method} ${path}: ${response.status}`);
-      const value = await response.text(); return value ? JSON.parse(value) : undefined;
-    };
+    const api = realmApi();
     if (process.argv.includes('--identity')) await configureIdentity(api);
     const providers = await api('GET', '/identity-provider/instances');
     for (const provider of providers) {
@@ -88,4 +85,16 @@ try {
     console.log('Dedicated OIDC test fixtures disabled; no users deleted.');
   } else await configure(env);
 } finally { await browser.close(); }
+
+/** Admin REST calls on the sidpb realm with the token captured from the interactive login. */
+function realmApi() {
+  return async (method, path, body) => {
+    const response = await fetch(`${kc}/admin/realms/sidpb${path}`, {
+      method, headers: { Authorization: `Bearer ${env.KC_ADMIN_TOKEN}`, 'Content-Type': 'application/json' },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    if (!response.ok) throw new Error(`${method} ${path}: ${response.status}`);
+    const value = await response.text(); return value ? JSON.parse(value) : undefined;
+  };
+}
 

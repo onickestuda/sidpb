@@ -31,6 +31,7 @@ class SubmissionControllersTest {
     @Autowired org.springframework.web.context.WebApplicationContext context;
     @MockitoBean SubmissionService submissions;
     @MockitoBean CurationService curation;
+    @MockitoBean com.nca.sistema_miiase_app.service.curation.CurationFacetService facets;
     @MockitoBean com.nca.sistema_miiase_app.service.auth.AuthService auth;
     @org.junit.jupiter.api.BeforeEach void identity() {
         mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup(context).apply(org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity()).build();
@@ -74,7 +75,8 @@ class SubmissionControllersTest {
     }
 
     @Test void deveListarFilaComPaginacao() throws Exception {
-        when(submissions.list(isNull(), eq(SubmissaoStatus.PENDING), isNull(), isNull(), isNull(), isNull(), isNull(), eq(0), eq(20)))
+        when(facets.matching(org.mockito.ArgumentMatchers.any())).thenReturn(null); // no specialty selected
+        when(submissions.list(isNull(), eq(SubmissaoStatus.PENDING), isNull(), isNull(), isNull(), isNull(), isNull(), eq(0), eq(20), isNull()))
                 .thenReturn(new SubmissionPageDto(List.of(), 0, 20, 0, 0));
         mvc.perform(get("/api/curation/submissions"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.items").isArray()).andExpect(jsonPath("$.totalElements").value(0));

@@ -12,6 +12,11 @@ Se ele ficar desligado, os PDFs esperam na fila; se cair no meio, a reserva venc
 
 ## Preparar
 
+0. Keycloak (uma vez por ambiente, pode repetir sem efeito colateral): na raiz do projeto, rode
+   `node infra/keycloak/configure-local.mjs --pipeline` para criar o papel `PIPELINE`, o cliente
+   confidencial `sidpb-pipeline` (só client credentials), o papel na conta de serviço e a audiência
+   `sidpb-api`. Use `--activate-theme` para aplicar o tema SIDPB no login e em "Minha conta".
+   O script entra com o administrador do `.env` da raiz e nunca lê nem troca o segredo do cliente.
 1. Python 3.10+, sem pacotes extras.
 2. Copie `.env.example` para `.env` nesta pasta e preencha `PIPELINE_CLIENT_SECRET`
    (Keycloak → realm `sidpb` → Clients → `sidpb-pipeline` → Credentials).

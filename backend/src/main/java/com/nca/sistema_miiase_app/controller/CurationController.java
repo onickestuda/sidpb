@@ -14,16 +14,19 @@ import com.nca.sistema_miiase_app.dto.curation.RejectRequestDto;
 import com.nca.sistema_miiase_app.dto.submission.SubmissionDetailDto;
 import com.nca.sistema_miiase_app.dto.submission.SubmissionPageDto;
 import com.nca.sistema_miiase_app.service.curation.CurationService;
+import com.nca.sistema_miiase_app.service.curation.CurationFacetService;
 import com.nca.sistema_miiase_app.service.submission.SubmissionService;
 
 @RestController
 @RequestMapping("/api/curation/submissions")
 public class CurationController {
+    private final CurationFacetService facets;
     private final SubmissionService submissions;
     private final CurationService curation;
     private final com.nca.sistema_miiase_app.service.auth.AuthService auth;
     public CurationController(SubmissionService submissions, CurationService curation,
-            com.nca.sistema_miiase_app.service.auth.AuthService auth) {
+            com.nca.sistema_miiase_app.service.auth.AuthService auth, CurationFacetService facets) {
+        this.facets = facets;
         this.submissions = submissions;
         this.curation = curation;
         this.auth = auth;
@@ -35,8 +38,17 @@ public class CurationController {
             @RequestParam(required = false) String disease,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
-            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
-        return submissions.list(null, status, title, year, disease, from, to, page, size);
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) java.util.List<String> diseases, @RequestParam(required = false) java.util.List<String> vectors,
+            @RequestParam(required = false) java.util.List<String> hosts, @RequestParam(required = false) java.util.List<String> states) {
+        var only = facets.matching(new CurationFacetService.Selection(diseases, vectors, hosts, states));
+        return submissions.list(null, status, title, year, disease, from, to, page, size, only);
+    }
+
+    /** Specialty options (with submission counts) for the queue in the given status. */
+    @GetMapping("/facetas")
+    public CurationFacetService.Facets facets(@RequestParam(defaultValue = "PENDING") SubmissaoStatus status) {
+        return facets.facets(status);
     }
 
     @GetMapping("/{id}")

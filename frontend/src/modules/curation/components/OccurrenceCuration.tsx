@@ -15,12 +15,11 @@ function Field({ label, value }: { label: string; value: string | number | null 
   return <div className="contents"><dt className="text-muted-foreground">{label}:</dt><dd className="break-words">{value}</dd></div>;
 }
 
-function Column({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
+function Column({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="min-w-0 space-y-3" aria-label={title}>
       <header className="border-b border-border pb-2">
         <h5 className="text-sm font-semibold">{title}</h5>
-        <p className="text-xs text-muted-foreground">{hint}</p>
       </header>
       {children}
     </section>
@@ -97,7 +96,7 @@ export function OccurrenceCuration({ userSuggestions, extraction, drafts, onChan
   return (
     <div className={`grid items-start gap-6 ${columns}`}>
       {userSuggestions !== null && (
-        <Column title="Sugestão do usuário" hint="O que quem enviou o artigo informou (somente leitura).">
+        <Column title="Submetidas">
           {userSuggestions.length === 0
             ? <p className="text-xs text-muted-foreground">Nenhuma ocorrência informada pelo usuário.</p>
             : userSuggestions.map((occurrence, index) => (
@@ -106,7 +105,7 @@ export function OccurrenceCuration({ userSuggestions, extraction, drafts, onChan
         </Column>
       )}
 
-      <Column title="Extração da LLM" hint="Ocorrências encontradas automaticamente, com os trechos do artigo (somente leitura).">
+      <Column title="Extração automática">
         {extraction ? <ExtractionSummary extraction={extraction} /> : (
           <p className="text-xs text-muted-foreground">Sem extração automática para esta submissão.</p>
         )}
@@ -115,7 +114,7 @@ export function OccurrenceCuration({ userSuggestions, extraction, drafts, onChan
         ))}
       </Column>
 
-      <Column title="Ocorrências do curador" hint="Somente estas ficam no sistema e no mapa ao aprovar.">
+      <Column title="Registro final">
         {drafts.map((draft, index) => (
           <OccurrenceDraftForm key={draft.key} draft={draft} title={`Ocorrência ${index + 1}`} showSeal disabled={disabled}
             onChange={(next) => update(draft.key, next)} onRemove={() => remove(draft.key)} />

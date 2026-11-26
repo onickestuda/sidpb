@@ -31,6 +31,7 @@ class AuthControllerTest {
     @MockitoBean AdminAuditService adminAudit;
     @MockitoBean SubmissionService submissions;
     @MockitoBean CurationService curation;
+    @MockitoBean com.nca.sistema_miiase_app.service.curation.CurationFacetService facets;
     void token(String role) {
         when(decoder.decode("valid")).thenReturn(Jwt.withTokenValue("valid").header("alg", "RS256")
             .subject("actor-sub").issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(120))

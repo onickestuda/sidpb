@@ -106,6 +106,16 @@ export interface CurationFilters {
   from: string;
   to: string;
   page: number;
+  /** Specialty filters (any value within a category, every category with a selection). */
+  diseases?: string[];
+  vectors?: string[];
+  hosts?: string[];
+  states?: string[];
+}
+
+export interface CurationFacetOption { label: string; count: number; }
+export interface CurationFacets {
+  diseases: CurationFacetOption[]; vectors: CurationFacetOption[]; hosts: CurationFacetOption[]; states: CurationFacetOption[];
 }
 
 export type LocationSeal = ExtractedOccurrence["locationPrecision"];

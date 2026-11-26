@@ -8,7 +8,11 @@ import { CurationStamp } from "./CurationStamp";
 import { formatDate } from "./SubmissionTable";
 
 /** showSuggestions: list the occurrences the submitter suggested (the curator sees them in their own column). */
-export function SubmissionOverview({ submission: s, pdfUrl, showSuggestions }: { submission: SubmissionDetail; pdfUrl: string; showSuggestions: boolean }) {
+export function SubmissionOverview({ submission: s, pdfUrl, showSuggestions, showSourceData = true }: {
+  submission: SubmissionDetail; pdfUrl: string; showSuggestions: boolean;
+  /** False while a curator edits the source next to it (avoids showing the same data twice). */
+  showSourceData?: boolean;
+}) {
   return (
     <div className="space-y-6">
       <Card>
@@ -25,9 +29,9 @@ export function SubmissionOverview({ submission: s, pdfUrl, showSuggestions }: {
           {s.origin === "EXTRACAO" && <span className="self-center text-sm text-muted-foreground">Recebida do pipeline de extração automática · sem PDF anexado</span>}
         </CardContent>
       </Card>
-      <Card><CardHeader><CardTitle><h3>Dados da fonte</h3></CardTitle></CardHeader>
+      {showSourceData && <Card><CardHeader><CardTitle><h3>Dados da fonte</h3></CardTitle></CardHeader>
         <CardContent><ArticleDataView data={s.userData} fields="source" /></CardContent>
-      </Card>
+      </Card>}
       {showSuggestions && s.origin !== "EXTRACAO" && <Card>
         <CardHeader><CardTitle><h3>Ocorrências informadas</h3></CardTitle></CardHeader>
         <CardContent><UserOccurrencesView data={s.userData} /></CardContent>

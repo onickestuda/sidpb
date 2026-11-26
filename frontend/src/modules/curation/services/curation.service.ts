@@ -1,9 +1,12 @@
-import type { ArticleData, CuratedOccurrence, CurationFilters, ExtractionDetail, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
+import type { ArticleData, CuratedOccurrence, CurationFacets, CurationFilters, ExtractionDetail, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
 import { ApiError, apiUrl, apiRequest } from "@/lib/apiClient";
 
 export const curationService = {
   list(filters: CurationFilters, signal?: AbortSignal) {
     return apiRequest<SubmissionPage>("/api/curation/submissions", { params: { ...filters, size: 10 }, signal });
+  },
+  facets(status: CurationFilters["status"], signal?: AbortSignal) {
+    return apiRequest<CurationFacets>("/api/curation/submissions/facetas", { params: { status }, signal });
   },
   get(id: number, signal?: AbortSignal) {
     return apiRequest<SubmissionDetail>(`/api/curation/submissions/${id}`, { signal });

@@ -25,12 +25,16 @@ let draftCounter = 0;
 const nextKey = () => `occurrence-${++draftCounter}`;
 const text = (value: string | number | null | undefined) => (value === null || value === undefined ? "" : String(value));
 const value = (input: string) => input.trim() || null;
+
+/** Seals the curator can choose. "Só o estado" (ESTADO) is no longer offered; old records still read fine. */
+const SELECTABLE_SEALS: LocationSeal[] = ["EXATA", "MUNICIPIO", "SEM_LOCAL"];
+/** Legacy/extracted ESTADO rows start as "Sem local confirmado" in the form. */
+const selectable = (seal: LocationSeal): LocationSeal => (seal === "ESTADO" ? "SEM_LOCAL" : seal);
 const number = (input: string) => (input.trim() ? Number(input) : null);
 
-function sealFor(latitude: unknown, longitude: unknown, municipality: unknown, state: unknown): LocationSeal {
+function sealFor(latitude: unknown, longitude: unknown, municipality: unknown): LocationSeal {
   if (latitude !== null && latitude !== undefined && latitude !== "" && longitude !== null && longitude !== undefined && longitude !== "") return "EXATA";
-  if (municipality) return "MUNICIPIO";
-  return state ? "ESTADO" : "SEM_LOCAL";
+  return municipality ? "MUNICIPIO" : "SEM_LOCAL";
 }
 
 export function emptyDraft(): OccurrenceDraft {
@@ -49,7 +53,7 @@ export function draftFromExtraction(occurrence: ExtractedOccurrence): Occurrence
     // Municipality-level rows carry the centroid: never prefill it as if it were an exact point.
     latitude: occurrence.locationPrecision === "EXATA" ? text(occurrence.latitude) : "",
     longitude: occurrence.locationPrecision === "EXATA" ? text(occurrence.longitude) : "",
-    year: text(occurrence.year), locationSeal: occurrence.locationPrecision, notes: "",
+    year: text(occurrence.year), locationSeal: selectable(occurrence.locationPrecision), notes: "",
   };
 }
 
@@ -59,7 +63,7 @@ export function draftFromUser(occurrence: UserOccurrence): OccurrenceDraft {
     host: text(occurrence.host), hostCategory: text(occurrence.hostCategory), municipality: text(occurrence.municipality),
     state: text(occurrence.state), latitude: text(occurrence.latitude), longitude: text(occurrence.longitude),
     year: text(occurrence.year), notes: text(occurrence.notes),
-    locationSeal: sealFor(occurrence.latitude, occurrence.longitude, occurrence.municipality, occurrence.state),
+    locationSeal: sealFor(occurrence.latitude, occurrence.longitude, occurrence.municipality),
   };
 }
 
@@ -129,7 +133,7 @@ export function OccurrenceDraftForm({ draft, title, disabled = false, showSeal =
             <select id={id("seal")} value={draft.locationSeal}
               onChange={(event) => onChange({ ...draft, locationSeal: event.target.value as LocationSeal })}
               className="block w-full rounded-[2px] border border-input bg-background px-2 py-1.5 text-sm">
-              {(Object.keys(LOCATION_SEALS) as LocationSeal[]).map((seal) => <option key={seal} value={seal}>{LOCATION_SEALS[seal]}</option>)}
+              {SELECTABLE_SEALS.map((seal) => <option key={seal} value={seal}>{LOCATION_SEALS[seal]}</option>)}
             </select>
             <p className="text-[11px] text-muted-foreground">Exata exige latitude e longitude; aproximada usa o centro do município.</p>
           </div>

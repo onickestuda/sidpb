@@ -104,12 +104,19 @@ public class SubmissionService {
 
     public SubmissionPageDto list(Integer userId, SubmissaoStatus status, String title, Integer year,
             String disease, LocalDate from, LocalDate to, int page, int size) {
+        return list(userId, status, title, year, disease, from, to, page, size, null);
+    }
+
+    /** onlyIds: restriction computed from the specialty facets (null = no restriction). */
+    public SubmissionPageDto list(Integer userId, SubmissaoStatus status, String title, Integer year,
+            String disease, LocalDate from, LocalDate to, int page, int size, java.util.Set<Integer> onlyIds) {
         if (page < 0 || size < 1 || size > 100 || (from != null && to != null && from.isAfter(to))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Paginação ou intervalo de datas inválido.");
         }
         Specification<SubmissaoArtigo> filters = (root, query, cb) -> {
             var predicates = new ArrayList<Predicate>();
             if (userId != null) predicates.add(cb.equal(root.get("usuario").get("id"), userId));
+            if (onlyIds != null) predicates.add(onlyIds.isEmpty() ? cb.disjunction() : root.get("id").in(onlyIds));
             if (status != null) predicates.add(cb.equal(root.get("status"), status));
             if (title != null && !title.isBlank()) predicates.add(cb.like(cb.lower(root.get("titulo")), contains(title), '\\'));
             if (year != null) predicates.add(cb.equal(root.get("ano"), year));
