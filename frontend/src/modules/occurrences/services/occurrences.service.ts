@@ -9,7 +9,7 @@ import type {
   OccurrenceFeatureCollection,
   OccurrenceFilters,
 } from "@/entities/occurrence/occurrence.types"
-import { apiRequest } from "@/services/apiClient"
+import { apiRequest } from "@/lib/apiClient"
 
 // Falhas da API sobem para a interface, que exibe o estado de erro do mapa.
 // Nunca substituir por dados ficticios: o mapa apresenta dados cientificos.

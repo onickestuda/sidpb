@@ -1,5 +1,5 @@
 import type { ArticleData, CurationFilters, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
-import { apiUrl, apiRequest } from "@/services/apiClient";
+import { apiUrl, apiRequest } from "@/lib/apiClient";
 
 export const curationService = {
   list(filters: CurationFilters, signal?: AbortSignal) {

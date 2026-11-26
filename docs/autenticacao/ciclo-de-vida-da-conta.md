@@ -1,4 +1,4 @@
-> Atualizacao operacional em 12/11/2026: ambiente local ativado. Consulte [LOCAL_ACTIVATION.md](LOCAL_ACTIVATION.md) para migrations, backup e resultados atuais. Os bloqueios e pendencias descritos abaixo pertencem a etapa anterior.
+> Atualizacao operacional em 12/11/2026: ambiente local ativado. Consulte [docs/desenvolvimento/ativacao-local.md](docs/desenvolvimento/ativacao-local.md) para migrations, backup e resultados atuais. Os bloqueios e pendencias descritos abaixo pertencem a etapa anterior.
 
 # Autenticação e exclusão de contas
 

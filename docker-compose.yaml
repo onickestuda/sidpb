@@ -140,6 +140,8 @@ services:
   seed_miiase:
     image: postgres:15-alpine
     container_name: sidpb_seed_miiase
+    # Dados de teste: rode explicitamente, nunca em banco com dados reais.
+    profiles: [seed]
 
     depends_on:
       db:
@@ -155,7 +157,7 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD}
 
     volumes:
-      - ./backend/src/main/resources/db/seed/seed_miiase_test.sql:/seed/seed_miiase_test.sql:ro
+      - ./infra/database/seed/seed_miiase_test.sql:/seed/seed_miiase_test.sql:ro
 
     entrypoint:
       - /bin/sh
@@ -218,7 +220,7 @@ services:
 
   base_geografica:
     build:
-      context: ./backend/${BASE_GEOGRAFICA_PATH}
+      context: ./infra/database/ibge
       dockerfile: Dockerfile
 
     profiles:
@@ -243,7 +245,7 @@ services:
       TRANSFORMACAO_STG_TO_DB: ${TRANSFORMACAO_STG_TO_DB}
 
     volumes:
-      - ./backend/${BASE_GEOGRAFICA_PATH}:/base_geografica
+      - ./infra/database/ibge:/base_geografica
 
     entrypoint:
       [

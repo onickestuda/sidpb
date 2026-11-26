@@ -1,9 +1,9 @@
-> Endere?os locais e comandos atualizados: [LOCAL_DEVELOPMENT_URLS.md](LOCAL_DEVELOPMENT_URLS.md). Exemplos antigos com 127.0.0.1 ou porta 3000 n?o s?o mais os endere?os p?blicos oficiais.
+> Endere?os locais e comandos atualizados: [docs/desenvolvimento/enderecos-locais.md](docs/desenvolvimento/enderecos-locais.md). Exemplos antigos com 127.0.0.1 ou porta 3000 n?o s?o mais os endere?os p?blicos oficiais.
 
 # Keycloak local — etapa 1
 
 > Este guia descreve o provisionamento inicial. A integração de autenticação
-> implementada na etapa 3 está em [KEYCLOAK_AUTH_INTEGRATION.md](KEYCLOAK_AUTH_INTEGRATION.md).
+> implementada na etapa 3 está em [docs/autenticacao/integracao-keycloak.md](docs/autenticacao/integracao-keycloak.md).
 
 Infraestrutura de desenvolvimento com `quay.io/keycloak/keycloak:26.8.1`,
 `start-dev --import-realm` e PostgreSQL 15/PostGIS já existente. A versão foi

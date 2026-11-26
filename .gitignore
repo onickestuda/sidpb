@@ -85,6 +85,6 @@ Thumbs.db
 /PARAR.cmd
 /LEIA-ME.txt
 
-### Shapefiles IBGE (>100 MB, baixar do IBGE; ver backend/README.MD) ###
-backend/src/main/resources/db/base_geografica/shapefiles_ibge/
+### Shapefiles IBGE (>100 MB; baixar do IBGE, ver infra/database/README.md) ###
+infra/database/ibge/shapefiles_ibge/
 

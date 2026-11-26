@@ -1,6 +1,6 @@
-> Politica vigente de exclusao e novos cadastros: [ACCOUNT_LIFECYCLE.md](ACCOUNT_LIFECYCLE.md). Relatos antigos de bloqueio/reassociacao de contas historicas foram substituidos.
+> Politica vigente de exclusao e novos cadastros: [docs/autenticacao/ciclo-de-vida-da-conta.md](docs/autenticacao/ciclo-de-vida-da-conta.md). Relatos antigos de bloqueio/reassociacao de contas historicas foram substituidos.
 
-> Endere?os locais e comandos atualizados: [LOCAL_DEVELOPMENT_URLS.md](LOCAL_DEVELOPMENT_URLS.md). Exemplos antigos com 127.0.0.1 ou porta 3000 n?o s?o mais os endere?os p?blicos oficiais.
+> Endere?os locais e comandos atualizados: [docs/desenvolvimento/enderecos-locais.md](docs/desenvolvimento/enderecos-locais.md). Exemplos antigos com 127.0.0.1 ou porta 3000 n?o s?o mais os endere?os p?blicos oficiais.
 
 # SIDPB — autenticação e autorização com Keycloak
 
@@ -122,7 +122,7 @@ esse token em arquivos ou logs.
 
 Google IdP e SMTP dependem das configurações do próprio ambiente. O script os
 preserva no realm existente. O tema de login `sidpb` está versionado em
-`infra/keycloak/themes/sidpb`; consulte `docs/KEYCLOAK_THEME.md` para montagem,
+`infra/keycloak/themes/sidpb`; consulte `docs/autenticacao/tema-de-login.md` para montagem,
 ativação, desenvolvimento e rollback. Para criar um
 ambiente novo, configure o alias Google como `google`, registro, verificação de
 e-mail e SMTP pelo painel/segredos do ambiente, sem versionar Client Secret,
@@ -171,7 +171,7 @@ atômico. Alterar nome ou e-mail no Keycloak mantém o mesmo ID local. A role na
 tabela é apenas cache de exibição; a API usa exclusivamente a role do token
 validado.
 
-O ciclo de identidade agora segue [ACCOUNT_LIFECYCLE.md](ACCOUNT_LIFECYCLE.md).
+O ciclo de identidade agora segue [docs/autenticacao/ciclo-de-vida-da-conta.md](docs/autenticacao/ciclo-de-vida-da-conta.md).
 Um novo subject sempre recebe uma identidade local nova, mesmo com e-mail anteriormente usado.
 O bloqueio 409/legacy e o procedimento de reassociacao foram removidos.
 O script link-legacy-user.sql esta desativado e nao deve ser usado.

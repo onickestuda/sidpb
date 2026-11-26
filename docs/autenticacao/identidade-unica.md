@@ -1,11 +1,11 @@
-> Politica vigente de exclusao e novos cadastros: [ACCOUNT_LIFECYCLE.md](ACCOUNT_LIFECYCLE.md). Relatos antigos de bloqueio/reassociacao de contas historicas foram substituidos.
+> Politica vigente de exclusao e novos cadastros: [docs/autenticacao/ciclo-de-vida-da-conta.md](docs/autenticacao/ciclo-de-vida-da-conta.md). Relatos antigos de bloqueio/reassociacao de contas historicas foram substituidos.
 
-> Endere?os locais e comandos atualizados: [LOCAL_DEVELOPMENT_URLS.md](LOCAL_DEVELOPMENT_URLS.md). Exemplos antigos com 127.0.0.1 ou porta 3000 n?o s?o mais os endere?os p?blicos oficiais.
+> Endere?os locais e comandos atualizados: [docs/desenvolvimento/enderecos-locais.md](docs/desenvolvimento/enderecos-locais.md). Exemplos antigos com 127.0.0.1 ou porta 3000 n?o s?o mais os endere?os p?blicos oficiais.
 
 # Identidade única e tema — 5 de novembro de 2026
 
 Atualização de 09/11: administração e fundo estático estão descritos em
-[Administração e pré-login](ADMINISTRATION_AND_PRELOGIN.md). As evidências abaixo
+[Administração e pré-login](docs/autenticacao/administracao-e-prelogin.md). As evidências abaixo
 referem-se à etapa de identidade; consulte o novo documento para a entrega atual.
 
 Trabalho local em `feature/keycloak-auth`, sem push ou deploy. Alterações anteriores
@@ -62,7 +62,7 @@ e submissões antes/depois de reiniciar somente o Keycloak. Não grava dados pes
 Os formulários e templates de segurança continuam herdados de Keycloak 26.8.1.
 O mapa agora usa a imagem estática original compartilhada com Next.js, sem Leaflet
 ou tiles nas páginas de pré-login. A fonte, a atribuição e a sincronização estão
-documentadas em [Administração e pré-login](ADMINISTRATION_AND_PRELOGIN.md).
+documentadas em [Administração e pré-login](docs/autenticacao/administracao-e-prelogin.md).
 
 Logo, card reto de 420px, fonte Arial e tokens de cores seguem o frontend. Estilos
 cobrem ações primárias e secundárias (`btn-default` incluída), controles de senha,

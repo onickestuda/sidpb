@@ -1,10 +1,10 @@
-> Endere?os locais e comandos atualizados: [LOCAL_DEVELOPMENT_URLS.md](LOCAL_DEVELOPMENT_URLS.md). Exemplos antigos com 127.0.0.1 ou porta 3000 n?o s?o mais os endere?os p?blicos oficiais.
+> Endere?os locais e comandos atualizados: [docs/desenvolvimento/enderecos-locais.md](docs/desenvolvimento/enderecos-locais.md). Exemplos antigos com 127.0.0.1 ou porta 3000 n?o s?o mais os endere?os p?blicos oficiais.
 
 # SIDPB — tema de autenticação do Keycloak
 
 ## Escopo e referência visual
 
-Atualização de 09/11/2026: veja [administração e pré-login](ADMINISTRATION_AND_PRELOGIN.md).
+Atualização de 09/11/2026: veja [administração e pré-login](docs/autenticacao/administracao-e-prelogin.md).
 O tema usa a mesma imagem estática e o mesmo CSS de fundo do Next.js, sem Leaflet
 ou tiles nas telas de autenticação, com card reto de 420px e logo dentro do card.
 O relato de validação de 04/11 abaixo é histórico; a matriz atual distingue testes

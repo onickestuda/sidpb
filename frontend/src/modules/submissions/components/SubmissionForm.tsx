@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { submissionsService } from "../services/submissions.service";
 import { ArticleFields, EMPTY_ARTICLE, formToArticle, type ArticleFormValues } from "./ArticleFields";
-import { ApiError } from "@/services/apiClient";
+import { ApiError } from "@/lib/apiClient";
 
 export function SubmissionForm({ onCreated }: { onCreated(): void }) {
   const { user } = useAuth();

@@ -1,5 +1,5 @@
 import type { ArticleData, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
-import { apiUrl, apiRequest } from "@/services/apiClient";
+import { apiUrl, apiRequest } from "@/lib/apiClient";
 
 export const submissionsService = {
   create(userId: number, originalLink: string, userData: ArticleData, pdf: File) {

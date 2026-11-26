@@ -298,12 +298,12 @@ Criados no frontend, sob `frontend/src/`:
 - `app/usuario/submissoes/[id]/page.tsx`
 - `app/curador/submissoes/[id]/page.tsx`
 
-Também criado: este `SUBMISSIONS_CURATION.md`.
+Também criado: este `docs/curadoria-e-submissoes.md`.
 
 Modificados:
 
 - `backend/.gitignore` (storage local)
-- `backend/docker-compose.yaml` (volume de PDFs)
+- (removido) `backend/docker-compose.yaml`
 - `backend/src/main/resources/application.properties` (storage e limites multipart)
 - `docker-compose.yaml` (volume de PDFs)
 - `frontend/src/app/usuario/page.tsx` (submissões)

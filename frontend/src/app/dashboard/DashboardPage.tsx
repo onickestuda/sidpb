@@ -12,7 +12,7 @@ import type { MapController } from "@/modules/map/types/map-controller.types";
 
 import { useOccurrences } from "@/modules/occurrences/hooks/useOccurrences";
 
-import { DashboardFooterSection } from "@/sections/dashboard/DashboardFooterSection";
+import { DashboardFooterSection } from "@/modules/dashboard/components/DashboardFooterSection";
 
 export default function DashboardPage() {
   const map: MapController = useMapController();

@@ -17,7 +17,7 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { SubmissionOverview } from "@/modules/submissions/components/SubmissionOverview";
 import { ArticleFields, EMPTY_ARTICLE, articleToForm, formToArticle, type ArticleFormValues } from "@/modules/submissions/components/ArticleFields";
 import { curationService } from "../services/curation.service";
-import { ApiError } from "@/services/apiClient";
+import { ApiError } from "@/lib/apiClient";
 
 export function CurationReview({ id }: { id: number }) {
   const { user } = useAuth();

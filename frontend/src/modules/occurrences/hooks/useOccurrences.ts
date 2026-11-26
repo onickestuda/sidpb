@@ -6,7 +6,7 @@ import type {
   OccurrenceFilters,
 } from "@/entities/occurrence/occurrence.types"
 import { useFiltersStore } from "@/modules/filters/store/filtersStore"
-import { useApiQuery } from "@/hooks/useApiQuery"
+import { useApiQuery } from "@/lib/useApiQuery"
 import {
   applyOccurrenceFilters,
   fetchDashboardOccurrences,

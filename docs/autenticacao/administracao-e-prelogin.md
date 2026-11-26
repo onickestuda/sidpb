@@ -1,4 +1,4 @@
-> Politica vigente de exclusao e novos cadastros: [ACCOUNT_LIFECYCLE.md](ACCOUNT_LIFECYCLE.md). Relatos antigos de bloqueio/reassociacao de contas historicas foram substituidos.
+> Politica vigente de exclusao e novos cadastros: [docs/autenticacao/ciclo-de-vida-da-conta.md](docs/autenticacao/ciclo-de-vida-da-conta.md). Relatos antigos de bloqueio/reassociacao de contas historicas foram substituidos.
 
 # Administração de usuários e pré-login — 9 de novembro de 2026
 
