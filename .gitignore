@@ -1,0 +1,92 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+*.env
+!example.env
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# Next.js
+/.next/
+/out/
+
+# production
+/build
+
+# local environment
+.env
+.env.local
+.auth-sessions/
+.local-backups/
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+### Pacote de transferencia (instalador local; contem dump do banco, imagens e senhas) ###
+/transferencia/
+/compose.transfer.json
+/INICIAR.cmd
+/INICIAR.ps1
+/PARAR.cmd
+/LEIA-ME.txt
+
+### Shapefiles IBGE (>100 MB, baixar do IBGE; ver backend/README.MD) ###
+backend/src/main/resources/db/base_geografica/shapefiles_ibge/
+
+### Logs de sessao da extensao Java upgrade ###
+.github/modernize/java-upgrade/hooks/*.json

@@ -1,0 +1,444 @@
+:root {
+  --sidpb-green-900: #123d18;
+  --sidpb-green-800: #1b5e20;
+  --sidpb-green-700: #237a2b;
+  --sidpb-green-600: #2f9138;
+  --sidpb-green-500: #43a047;
+  --sidpb-slate-950: #111827;
+  --sidpb-slate-700: #374151;
+  --sidpb-slate-500: #6b7280;
+  --sidpb-slate-300: #d1d5db;
+  --sidpb-slate-200: #e5e7eb;
+  --sidpb-slate-100: #f3f4f6;
+  --sidpb-white: #fff;
+  --sidpb-danger: #b42318;
+  --sidpb-radius: 0;
+  --sidpb-shadow: 0 24px 64px rgba(15, 23, 42, 0.2);
+  --pf-global--primary-color--100: var(--sidpb-green-800);
+  --pf-global--primary-color--200: var(--sidpb-green-900);
+  --pf-global--link--Color: var(--sidpb-green-800);
+  --pf-global--link--Color--hover: var(--sidpb-green-900);
+  --pf-global--FontFamily--sans-serif: Arial, Helvetica, sans-serif;
+}
+
+html,
+body.login-pf {
+  min-height: 100%;
+}
+
+.login-pf body {
+  min-height: 100svh; margin: 0; color: oklch(0.20 0.02 240);
+  font-family: Arial, Helvetica, sans-serif; background: #e8f0f7;
+}
+
+
+
+.login-pf-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: min(100%, 500px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+#kc-header {
+  width: 100%;
+  margin: 0;
+  overflow: visible;
+  text-align: center;
+}
+
+#kc-header-wrapper {
+  width: 220px;
+  height: 59px;
+  margin: 0 auto 22px;
+  padding: 0;
+  overflow: hidden;
+  color: transparent;
+  font-size: 0;
+  background: url("../img/logo.svg") center / contain no-repeat;
+}
+
+.login-pf-page .card-pf {
+  width: 100%;
+  max-width: 468px;
+  margin: 0 auto;
+  padding: 34px 38px 32px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  border-top: 0;
+  border-radius: 8px;
+  box-shadow: var(--sidpb-shadow);
+}
+
+.login-pf-page .login-pf-header {
+  margin-bottom: 24px;
+}
+
+h1#kc-page-title {
+  margin: 0;
+  color: var(--sidpb-slate-950);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  text-align: center;
+}
+
+#kc-content-wrapper,
+#kc-form-wrapper {
+  margin-top: 0;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.pf-c-form__label,
+.pf-c-form__label-text,
+.control-label {
+  color: var(--sidpb-slate-700);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.pf-c-form-control,
+.form-control,
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  min-height: 44px;
+  color: var(--sidpb-slate-950);
+  font-size: 15px;
+  background: var(--sidpb-white);
+  border: 1px solid var(--sidpb-slate-300);
+  border-radius: var(--sidpb-radius);
+  box-shadow: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.pf-c-form-control:hover,
+.form-control:hover {
+  border-color: #9ca3af;
+}
+
+.pf-c-form-control:focus,
+.form-control:focus,
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--sidpb-green-500);
+  outline-offset: 2px;
+  border-color: var(--sidpb-green-800);
+  box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.18);
+}
+
+.pf-c-input-group {
+  align-items: stretch;
+}
+
+.pf-c-input-group .pf-c-form-control {
+  flex: 1 1 auto;
+}
+
+.pf-c-button.pf-m-control {
+  min-width: 44px;
+  color: var(--sidpb-slate-700);
+  background: var(--sidpb-white);
+  border: 1px solid var(--sidpb-slate-300);
+  border-left: 0;
+  border-radius: 0;
+}
+
+.pf-c-button.pf-m-primary,
+input[type="submit"].pf-m-primary,
+button.pf-m-primary {
+  min-height: 44px;
+  color: var(--sidpb-white);
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--sidpb-green-800);
+  border: 1px solid var(--sidpb-green-800);
+  border-radius: var(--sidpb-radius);
+  box-shadow: none;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.pf-c-button.pf-m-primary:hover,
+.pf-c-button.pf-m-primary:focus,
+input[type="submit"].pf-m-primary:hover,
+button.pf-m-primary:hover {
+  background: var(--sidpb-green-900);
+  border-color: var(--sidpb-green-900);
+}
+
+.pf-c-button[disabled],
+.pf-c-button[aria-disabled="true"],
+input[type="submit"][disabled] {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.pf-c-button[aria-busy="true"]::after,
+.pf-c-button.pf-m-progress::after {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-left: 9px;
+  vertical-align: -2px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  content: "";
+  animation: sidpb-spin 700ms linear infinite;
+}
+
+@keyframes sidpb-spin {
+  to { transform: rotate(360deg); }
+}
+
+.login-pf a {
+  color: var(--sidpb-green-800);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.login-pf a:hover {
+  color: var(--sidpb-green-900);
+}
+
+#kc-form-options,
+#kc-registration,
+.instruction {
+  color: var(--sidpb-slate-500);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+#kc-form-options .checkbox {
+  color: var(--sidpb-slate-700);
+}
+
+#kc-form-buttons {
+  margin-top: 22px;
+}
+
+#kc-info {
+  margin: 26px -38px -32px;
+}
+
+#kc-info-wrapper {
+  padding: 18px 38px;
+  color: var(--sidpb-slate-700);
+  text-align: center;
+  background: var(--sidpb-slate-100);
+  border-top: 1px solid var(--sidpb-slate-200);
+}
+
+.kc-social-section {
+  margin-top: 26px;
+}
+
+.kc-social-section hr {
+  margin: 0 0 18px;
+  border-color: var(--sidpb-slate-200);
+}
+
+.kc-social-links {
+  margin-top: 12px;
+}
+
+.kc-social-item {
+  min-height: 44px;
+  margin-bottom: 10px;
+  color: var(--sidpb-slate-700);
+  font-weight: 700;
+  background: var(--sidpb-white);
+  border: 1px solid var(--sidpb-slate-300);
+  border-radius: var(--sidpb-radius);
+}
+
+.kc-social-item:hover,
+.kc-social-item:focus {
+  color: var(--sidpb-slate-950);
+  background: var(--sidpb-slate-100);
+  border-color: #9ca3af;
+}
+
+.kc-social-item .fa-google {
+  color: #4285f4;
+}
+
+.kc-social-provider-name {
+  text-transform: capitalize;
+}
+
+.pf-c-alert {
+  margin-bottom: 22px;
+  color: var(--sidpb-slate-700);
+  background: #f8fafc;
+  border: 1px solid var(--sidpb-slate-200);
+  border-left: 4px solid var(--sidpb-green-700);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.pf-c-alert.pf-m-danger {
+  color: #7a271a;
+  background: #fffbfa;
+  border-left-color: var(--sidpb-danger);
+}
+
+.pf-c-alert.pf-m-success {
+  color: var(--sidpb-green-900);
+  background: #f2fbf3;
+}
+
+.pf-c-form__helper-text.pf-m-error,
+.has-error .help-block,
+.required {
+  color: var(--sidpb-danger);
+}
+
+#kc-locale {
+  margin-bottom: 12px;
+}
+
+#kc-locale-dropdown button,
+#kc-locale-dropdown a {
+  color: var(--sidpb-slate-700);
+}
+
+#kc-locale ul {
+  border: 1px solid var(--sidpb-slate-200);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+}
+
+.subtitle {
+  margin-top: 0;
+  color: var(--sidpb-slate-500);
+  font-size: 12px;
+}
+
+@media (max-width: 767px) {
+
+
+  .login-pf-page {
+    width: 100%;
+    padding: 24px 14px;
+  }
+
+  #kc-header {
+    padding: 0;
+    text-align: center;
+  }
+
+  #kc-header-wrapper {
+    width: 180px;
+    height: 48px;
+    margin: 0 auto 18px;
+  }
+
+  .login-pf-page .card-pf {
+    max-width: 468px;
+    margin: 0 auto;
+    padding: 28px 22px 26px;
+    background: rgba(255, 255, 255, 0.99);
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+  }
+
+  #kc-info {
+    margin: 24px -22px -26px;
+  }
+
+  #kc-info-wrapper {
+    padding: 17px 22px;
+    background: var(--sidpb-slate-100);
+    border-top: 1px solid var(--sidpb-slate-200);
+  }
+
+  h1#kc-page-title {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 380px) {
+  .login-pf-page {
+    padding: 16px 8px;
+  }
+
+  .login-pf-page .card-pf {
+    padding-right: 17px;
+    padding-left: 17px;
+  }
+
+  #kc-info {
+    margin-right: -17px;
+    margin-left: -17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Same tokens and card geometry as LoginWallCard and globals.css. */
+:root {
+  --sidpb-green-800: oklch(53.159% 0.12795 154.49);
+  --sidpb-green-900: oklch(45% 0.12795 154.49);
+  --sidpb-slate-950: oklch(0.20 0.02 240);
+  --sidpb-slate-300: oklch(0.88 0.01 240);
+}
+.login-pf-page { position: relative; z-index: 2; width: min(100%, 468px); padding: 32px 24px; }
+#kc-header { display: none; }
+.login-pf-page .card-pf {
+  max-width: 420px; padding: 24px; border: 1px solid oklch(0.88 0.01 240 / .9);
+  border-radius: 0; background: rgb(255 255 255 / .95);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
+}
+.login-pf-page .card-pf::before {
+  content: ''; display: block; width: 150px; height: 150px; margin: 0 auto 12px;
+  background: url('../img/logo.svg') center / contain no-repeat;
+}
+#kc-info { margin: 24px -24px -24px; }
+#kc-info-wrapper { padding: 18px 24px; }
+/* Native secondary actions: linking, review, consent, logout and cancellation. */
+.login-pf .pf-c-button.btn-default, .login-pf .pf-c-button.pf-m-secondary,
+.login-pf .btn-default, .login-pf input[type=button] {
+  min-height: 44px; padding: 10px 16px; white-space: normal; overflow-wrap: anywhere;
+  color: var(--sidpb-slate-950); background: oklch(.98 .002 240);
+  border: 1px solid var(--sidpb-slate-300); border-radius: 0;
+  box-shadow: none; font: 500 14px/1.5 Arial, Helvetica, sans-serif;
+}
+.login-pf .pf-c-button::after { border-radius: 0; }
+.login-pf .pf-c-button.btn-default:hover, .login-pf .btn-default:hover,
+.login-pf .pf-c-button.pf-m-secondary:hover { background: oklch(.55 .15 160); color: oklch(.25 .02 240); }
+.login-pf .pf-c-button { white-space: normal; overflow-wrap: anywhere; font-size: 14px; font-weight: 500; }
+.login-pf .pf-c-button + .pf-c-button { margin-top: 12px; }
+.login-pf .pf-c-input-group .pf-c-button { margin-top: 0; }
+.login-pf button:disabled, .login-pf input:disabled, .login-pf [aria-disabled=true] {
+  opacity: .5; cursor: not-allowed;
+}
+.login-pf input[aria-invalid=true], .login-pf .has-error input { border-color: var(--sidpb-danger); }
+.login-pf select, .login-pf textarea { max-width: 100%; border-radius: 0; }
+.login-pf input[type=checkbox], .login-pf input[type=radio] { accent-color: var(--sidpb-green-800); }
+.instruction, .kc-feedback-text { overflow-wrap: anywhere; }
+@media (max-width: 639px) {
+  .login-pf-page { padding: 32px 16px; }
+  .login-pf-page .card-pf { padding: 24px; }
+  #kc-info { margin: 24px -24px -24px; }
+}

@@ -1,0 +1,260 @@
+services:
+
+  keycloak-db-init:
+    # One-shot PostgreSQL client; uses the existing db, never starts a server.
+    image: postgres:15-alpine
+    profiles: [auth]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_DB_USER: ${KEYCLOAK_DB_USER:-sidpb_keycloak}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-}
+    volumes:
+      - ./infra/keycloak/provision.sql:/provision.sql:ro
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        : "$${KEYCLOAK_DB_PASSWORD:?Configure KEYCLOAK_DB_PASSWORD no .env}"
+        exec psql -X --set=ON_ERROR_STOP=1 --file=/provision.sql
+    restart: "no"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1
+    profiles: [auth]
+    entrypoint: [/bin/bash, -ec]
+    command:
+      - |
+        : "$${KC_DB_PASSWORD:?Configure KEYCLOAK_DB_PASSWORD no .env}"
+        : "$${KC_BOOTSTRAP_ADMIN_USERNAME:?Configure KEYCLOAK_ADMIN no .env}"
+        : "$${KC_BOOTSTRAP_ADMIN_PASSWORD:?Configure KEYCLOAK_ADMIN_PASSWORD no .env}"
+        exec /opt/keycloak/bin/kc.sh start-dev --import-realm
+    ports:
+      - "127.0.0.1:8081:8080"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      KC_DB_SCHEMA: keycloak
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-sidpb_keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-}
+      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:?Configure KEYCLOAK_PUBLIC_URL}
+      KC_HOSTNAME_STRICT: "true"
+      # Transport rewrite in the BFF keeps discovery endpoints and issuer public.
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    volumes:
+      - ./infra/keycloak/sidpb-realm.json:/opt/keycloak/data/import/sidpb-realm.json:ro
+      - ./infra/keycloak/themes:/opt/keycloak/themes:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      keycloak-db-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - /bin/bash
+        - -ec
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000;
+          printf 'GET /health/ready HTTP/1.0\r\nHost: localhost\r\n\r\n' >&3;
+          read -r status <&3;
+          [[ "$$status" == *" 200 "* ]]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
+    restart: unless-stopped
+
+  db:
+    image: postgis/postgis:15-3.4-alpine
+    container_name: sidpb_db
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: sidpb_api
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+      SIDPB_SUBMISSIONS_STORAGE_DIR: /app/storage/submissions
+      ACCOUNT_RECONCILIATION_ENABLED: ${ACCOUNT_RECONCILIATION_ENABLED:-true}
+      AUTH_ORIGIN: ${AUTH_ORIGIN:?Configure AUTH_ORIGIN}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_PUBLIC_URL:?Configure KEYCLOAK_PUBLIC_URL}/realms/sidpb
+      KEYCLOAK_PUBLIC_URL: ${KEYCLOAK_PUBLIC_URL:?Configure KEYCLOAK_PUBLIC_URL}
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      KEYCLOAK_API_SECRET: ${KEYCLOAK_API_SECRET:-}
+      KEYCLOAK_SERVICE_SECRET: ${KEYCLOAK_SERVICE_SECRET:-}
+
+    volumes:
+      - submissions_data:/app/storage
+
+    restart: unless-stopped
+
+
+  seed_miiase:
+    image: postgres:15-alpine
+    container_name: sidpb_seed_miiase
+
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - ./backend/src/main/resources/db/seed/seed_miiase_test.sql:/seed/seed_miiase_test.sql:ro
+
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo "Aguardando Flyway criar o schema..."
+
+        until psql -tAc "SELECT to_regclass('public.ocorrencia')" | grep -q ocorrencia; do
+          sleep 2
+        done
+
+        echo "Tabela ocorrencia encontrada."
+        echo "Executando seed de miÃ­ase..."
+
+        psql \
+          -v ON_ERROR_STOP=1 \
+          -f /seed/seed_miiase_test.sql
+
+        echo "Seed concluÃ­da com sucesso."
+
+    restart: "no"
+
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL:?Configure API_PUBLIC_URL}
+        NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:?Configure NEXT_PUBLIC_BASE_PATH}
+        AUTH_ORIGIN: ${AUTH_ORIGIN:?Configure AUTH_ORIGIN}
+
+    container_name: sidpb_frontend
+
+    ports:
+      - "7080:3000"
+
+    environment:
+      NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL:?Configure API_PUBLIC_URL}
+      INTERNAL_API_URL: http://api:8080
+      AUTH_ORIGIN: ${AUTH_ORIGIN:?Configure AUTH_ORIGIN}
+      NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:?Configure NEXT_PUBLIC_BASE_PATH}
+      AUTH_ALLOW_HTTP: ${AUTH_ALLOW_HTTP:-false}
+      AUTH_SESSION_DIR: /app/auth-sessions
+      AUTH_SESSION_MAINTENANCE_ENABLED: ${AUTH_SESSION_MAINTENANCE_ENABLED:-true}
+      AUTH_SESSION_KEY: ${AUTH_SESSION_KEY:-}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_PUBLIC_URL:?Configure KEYCLOAK_PUBLIC_URL}/realms/sidpb
+      KEYCLOAK_PUBLIC_URL: ${KEYCLOAK_PUBLIC_URL:?Configure KEYCLOAK_PUBLIC_URL}
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      KEYCLOAK_WEB_SECRET: ${KEYCLOAK_WEB_SECRET:-}
+
+    volumes:
+      - auth_sessions:/app/auth-sessions
+
+    depends_on:
+      - api
+
+    restart: unless-stopped
+
+
+  base_geografica:
+    build:
+      context: ./backend/${BASE_GEOGRAFICA_PATH}
+      dockerfile: Dockerfile
+
+    profiles:
+      - base_geografica
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+
+      SHAPE_ENCODING: UTF-8
+
+      REGIOES_SHP: ${REGIOES_SHP}
+      ESTADOS_SHP: ${ESTADOS_SHP}
+      MUNICIPIOS_SHP: ${MUNICIPIOS_SHP}
+      TRANSFORMACAO_STG_TO_DB: ${TRANSFORMACAO_STG_TO_DB}
+
+    volumes:
+      - ./backend/${BASE_GEOGRAFICA_PATH}:/base_geografica
+
+    entrypoint:
+      [
+        "/bin/bash",
+        "/base_geografica/scripts/load-ibge.sh"
+      ]
+
+    restart: "no"
+
+
+volumes:
+  auth_sessions:
+  db_data:
+  submissions_data:

@@ -1,0 +1,16 @@
+.marker {
+  background: transparent;
+  border: none;
+}
+
+.pin {
+  display: block;
+  width: 24px;
+  height: 32px;
+  opacity: 1;
+  transition: opacity 300ms ease-out;
+}
+
+.fading .pin {
+  opacity: 0;
+}
