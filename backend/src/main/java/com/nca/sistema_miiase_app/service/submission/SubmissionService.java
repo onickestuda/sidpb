@@ -38,8 +38,12 @@ public class SubmissionService {
     private final PdfStorageService storage;
     private final DocumentExtractionService extraction;
 
+    private final boolean pipelineMode;
+
     public SubmissionService(SubmissaoArtigoRepository repository, UsuarioRepository usuarios,
-            PdfStorageService storage, DocumentExtractionService extraction) {
+            PdfStorageService storage, DocumentExtractionService extraction,
+            @org.springframework.beans.factory.annotation.Value("${sidpb.extraction.mode:mock}") String extractionMode) {
+        this.pipelineMode = "pipeline".equalsIgnoreCase(extractionMode);
         this.repository = repository;
         this.usuarios = usuarios;
         this.storage = storage;
@@ -71,6 +75,12 @@ public class SubmissionService {
         submission.setDadosUsuario(request.userData());
         submission.setAno(request.userData().year());
         submission.setDoenca(request.userData().disease());
+        submission.setPdfSha256(sha256(pdf));
+        if (pipelineMode) {
+            // The real extraction runs in the pipeline worker, which claims this submission from the queue.
+            submission.setExtractionStatus(ExtractionStatus.PENDING);
+            return detail(repository.saveAndFlush(submission));
+        }
         try {
             Path localPdf = storage.load(key).getFile().toPath();
             var result = extraction.extract(localPdf);
@@ -138,6 +148,17 @@ public class SubmissionService {
                 s.getStatus(), s.getCreatedAt(), s.getUpdatedAt(), person(s.getUsuario()), s.getDadosUsuario(), s.getDadosLlm(),
                 s.getExtractionStatus(), s.getExtractedAt(), s.getExtractionModel(), s.isExtractionMock(),
                 s.getDadosCurados(), person(s.getCurador()), s.getReviewedAt(), s.getRejectionReason(), s.getOrigem());
+    }
+
+    private static String sha256(MultipartFile pdf) {
+        try (var input = pdf.getInputStream()) {
+            var digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] buffer = new byte[8192];
+            for (int read; (read = input.read(buffer)) > 0; ) digest.update(buffer, 0, read);
+            return java.util.HexFormat.of().formatHex(digest.digest());
+        } catch (Exception unavailable) {
+            return null; // the hash only helps duplicate detection; never block the submission
+        }
     }
 
     public static void validateCoordinates(ArticleDataDto data) {

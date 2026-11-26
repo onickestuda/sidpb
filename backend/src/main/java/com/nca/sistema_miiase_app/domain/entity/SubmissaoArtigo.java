@@ -32,6 +32,8 @@ public class SubmissaoArtigo {
     /** USUARIO (manual upload) or EXTRACAO (received from the LLM pipeline). */
     @Column(nullable = false, length = 20)
     private String origem = "USUARIO";
+    @Column(name = "pdf_sha256", length = 64)
+    private String pdfSha256;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20)
     private SubmissaoStatus status = SubmissaoStatus.PENDING;
     private Integer ano;

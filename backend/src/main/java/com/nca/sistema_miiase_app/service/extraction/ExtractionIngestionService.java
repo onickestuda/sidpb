@@ -93,10 +93,49 @@ public class ExtractionIngestionService {
                 RETURNING id_submissao""", Integer.class,
                 pipelineUser, truncate(title, 500), year, truncate(firstDisease, 200), articleJson, articleJson,
                 read.quality() == ExtractionReader.Quality.ILEGIVEL ? "FAILED" : "COMPLETED", truncate(payload.model(), 100));
+        return store(submissionId, externalId, payload.model(), raw, read);
+    }
+
+    /**
+     * Result of the pipeline for a PDF a person submitted: attached to THAT submission (the id travels
+     * with the job), never matched by content. A second result for the same submission is ignored.
+     */
+    @Transactional
+    public Outcome attach(Integer submissionId, Payload payload) {
+        List<Map<String, Object>> submission = jdbc.queryForList(
+                "SELECT origem FROM submissao_artigo WHERE id_submissao = ? FOR UPDATE", submissionId);
+        if (submission.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Submissão não encontrada.");
+        if (!"USUARIO".equals(submission.get(0).get("origem"))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Só submissões enviadas por pessoas aguardam extração.");
+        }
+        List<Map<String, Object>> existing = jdbc.queryForList(
+                "SELECT qualidade, ocorrencias_lidas, id_externo FROM extracao WHERE id_submissao = ?", submissionId);
+        if (!existing.isEmpty()) {
+            Map<String, Object> row = existing.get(0);
+            return new Outcome((String) row.get("id_externo"), submissionId, false, (String) row.get("qualidade"),
+                    ((Number) row.get("ocorrencias_lidas")).intValue(), Map.of(), "Esta submissão já tinha uma extração; nada foi alterado.");
+        }
+        String raw = rawText(payload.sumarization());
+        ExtractionReader.Result read = ExtractionReader.read(raw);
+        String externalId = ExtractionText.clean(payload.id()) == null ? "submissao:" + submissionId : truncate(payload.id().strip(), 500);
+        String firstDisease = read.occurrences().stream()
+                .map(occurrence -> ExtractionText.normalizeDisease(diseaseText(occurrence)))
+                .filter(java.util.Objects::nonNull).findFirst().orElse(null);
+        jdbc.update("""
+                UPDATE submissao_artigo SET extraction_status = ?, extracted_at = CURRENT_TIMESTAMP, extraction_model = ?,
+                    extraction_mock = FALSE, extraction_lease_until = NULL, updated_at = CURRENT_TIMESTAMP,
+                    dados_llm = jsonb_set(dados_usuario, '{disease}', to_jsonb(COALESCE(?, dados_usuario->>'disease')))
+                WHERE id_submissao = ?""",
+                read.quality() == ExtractionReader.Quality.ILEGIVEL ? "FAILED" : "COMPLETED",
+                truncate(payload.model(), 100), truncate(firstDisease, 200), submissionId);
+        return store(submissionId, externalId, payload.model(), raw, read);
+    }
+
+    private Outcome store(Integer submissionId, String externalId, String model, String raw, ExtractionReader.Result read) {
         Integer extractionId = jdbc.queryForObject("""
                 INSERT INTO extracao (id_submissao, id_externo, modelo, qualidade, ocorrencias_lidas, observacao_leitura, conteudo_bruto)
                 VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id_extracao""", Integer.class,
-                submissionId, externalId, truncate(payload.model(), 200), read.quality().name(),
+                submissionId, externalId, truncate(model, 200), read.quality().name(),
                 read.occurrences().size(), truncate(read.note(), 1000), raw);
 
         Map<Precision, Integer> byPrecision = new EnumMap<>(Precision.class);

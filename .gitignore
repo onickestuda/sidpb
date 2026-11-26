@@ -90,3 +90,8 @@ infra/database/ibge/shapefiles_ibge/
 
 ### Backups locais do banco ###
 /backups/
+
+### Worker do pipeline: segredo e PDFs baixados ###
+/infra/pipeline/.env
+/infra/pipeline/pdfs/
+__pycache__/

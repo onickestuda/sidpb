@@ -24,19 +24,25 @@ public class SecurityConfig {
         Map<String, Object> realm = jwt.getClaimAsMap("realm_access");
         Set<String> roles = new HashSet<>();
         if (realm != null && realm.get("roles") instanceof Collection<?> values) {
-            for (Object value : values) if (Set.of("USER", "CURATOR", "ADMIN").contains(value)) roles.add(value.toString());
+            for (Object value : values) if (Set.of("USER", "CURATOR", "ADMIN", "PIPELINE").contains(value)) roles.add(value.toString());
         }
         if (roles.contains("ADMIN")) roles.add("CURATOR");
         if (roles.contains("CURATOR")) roles.add("USER");
         return roles;
     }
 
+    /** Machine token of the extraction pipeline (client credentials): no e-mail, only the PIPELINE role. */
+    public static boolean isPipelineClient(Jwt jwt) {
+        return PIPELINE_CLIENT.equals(jwt.getClaimAsString("azp")) && roles(jwt).contains("PIPELINE");
+    }
+    public static final String PIPELINE_CLIENT = "sidpb-pipeline";
+
     public static OAuth2TokenValidator<Jwt> claimsValidator(String issuer, String audience) {
         OAuth2TokenValidator<Jwt> required = jwt -> {
             boolean valid = jwt.getAudience().contains(audience) && jwt.getSubject() != null
                 && !jwt.getSubject().isBlank() && jwt.getExpiresAt() != null && jwt.getIssuedAt() != null
                 && !jwt.getIssuedAt().isAfter(Instant.now().plusSeconds(30))
-                && Boolean.TRUE.equals(jwt.getClaimAsBoolean("email_verified"));
+                && (Boolean.TRUE.equals(jwt.getClaimAsBoolean("email_verified")) || isPipelineClient(jwt));
             return valid ? OAuth2TokenValidatorResult.success() : OAuth2TokenValidatorResult.failure(
                 new OAuth2Error("invalid_token", "Required identity claims are missing or invalid", null));
         };
@@ -67,6 +73,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/api/mapa/**", "/api/occurrences", "/api/occurrences/**").permitAll()
                 .requestMatchers("/api/auth/login").denyAll()
+                .requestMatchers("/api/pipeline/**").hasAnyRole("PIPELINE", "ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/curation/**").hasRole("CURATOR")
                 .requestMatchers("/api/submissions/**", "/api/auth/me").hasRole("USER")
