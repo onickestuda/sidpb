@@ -68,7 +68,7 @@ export function SubmissionForm({ onCreated }: { onCreated(): void }) {
           <section className="space-y-4" aria-labelledby="submission-source">
             <h3 id="submission-source" className="font-semibold">Dados da fonte</h3>
             <fieldset disabled={mutation.isPending} className="grid gap-4 md:grid-cols-2">
-              <legend className="mb-2 text-sm font-medium">Fonte * <span className="font-normal text-muted-foreground">PDF, link ou ambos</span></legend>
+              <legend className="mb-2 text-sm text-muted-foreground">Preencha com PDF e/ou link.</legend>
               <div className="md:col-span-2">
                 <PdfField value={pdf} onChange={file => { setPdf(file); setError(null); }} disabled={mutation.isPending} />
               </div>
