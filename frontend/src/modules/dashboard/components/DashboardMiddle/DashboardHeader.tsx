@@ -23,13 +23,15 @@ export function DashboardHeader() {
   return (
     <header className="grid h-16 grid-cols-[18rem_minmax(0,1fr)_24rem] items-center border-b border-border bg-background">
       <div className="flex items-center px-6">
-        <Image
-          src={`${basePath}/logo.svg`}
-          alt="SIDPB"
-          width={120}
-          height={42}
-          priority
-        />
+        <Link href="/dashboard" aria-label="SIDPB: ir para o mapa">
+          <Image
+            src={`${basePath}/logo.svg`}
+            alt="SIDPB"
+            width={120}
+            height={42}
+            priority
+          />
+        </Link>
       </div>
 
       <div className="flex justify-center px-6">

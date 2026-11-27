@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Eye, EyeOff, FileText, Upload, X } from "lucide-react";
+import { Eye, EyeOff, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const MAX_PDF_BYTES = 20 * 1024 * 1024;
@@ -50,12 +50,11 @@ export function PdfField({ value, onChange, disabled }: PdfFieldProps) {
 
   return (
     <div className="space-y-2">
-      <label htmlFor={inputId} className="text-sm font-medium">PDF do artigo *</label>
+      <label htmlFor={inputId} className="text-sm font-medium">PDF do artigo</label>
       <input ref={input} id={inputId} type="file" accept="application/pdf,.pdf" className="sr-only" disabled={disabled}
         onChange={event => select(event.target.files?.[0])} />
       {value ? (
         <div className="flex items-center gap-3 border border-border bg-muted/40 px-3 py-2">
-          <FileText className="size-5 shrink-0 text-primary" aria-hidden />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium" title={value.name}>{value.name}</p>
             <p className="text-xs text-muted-foreground">{formatFileSize(value.size)}</p>

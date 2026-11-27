@@ -26,7 +26,13 @@ public class SubmissionController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SubmissionDetailDto> create(@Valid @RequestPart("data") SubmissionRequestDto data,
-            @RequestPart("pdf") MultipartFile pdf) {
+            @RequestPart(value = "pdf", required = false) MultipartFile pdf) {
+        // The source is the PDF, the original link, or both: at least one is required.
+        boolean hasPdf = pdf != null && !pdf.isEmpty();
+        boolean hasLink = data.originalLink() != null && !data.originalLink().isBlank();
+        if (!hasPdf && !hasLink)
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                "Envie o PDF do artigo ou o link da fonte original.");
         return ResponseEntity.status(201).body(submissions.create(
             new SubmissionRequestDto(auth.currentId(), data.originalLink(), data.userData()), pdf));
     }

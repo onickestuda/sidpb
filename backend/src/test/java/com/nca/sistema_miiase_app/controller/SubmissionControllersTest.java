@@ -60,11 +60,27 @@ class SubmissionControllersTest {
         verifyNoInteractions(submissions);
     }
 
-    @Test void deveExigirPdf() throws Exception {
+    @Test void deveExigirPdfOuLink() throws Exception {
+        mvc.perform(multipart("/api/submissions").file(data("""
+                {"userId":3,"originalLink":"  ","userData":{"title":"Artigo"}}
+                """))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("Envie o PDF do artigo ou o link da fonte original."));
+        verifyNoInteractions(submissions);
+    }
+
+    @Test void deveAceitarSomenteOLink() throws Exception {
+        when(submissions.create(any(), any())).thenReturn(detail());
         mvc.perform(multipart("/api/submissions").file(data("""
                 {"userId":3,"originalLink":"https://example.org","userData":{"title":"Artigo"}}
-                """))).andExpect(status().isBadRequest());
-        verifyNoInteractions(submissions);
+                """))).andExpect(status().isCreated());
+        verify(submissions).create(argThat(request -> "https://example.org".equals(request.originalLink())), isNull());
+    }
+
+    @Test void deveAceitarSomenteOPdf() throws Exception {
+        when(submissions.create(any(), any())).thenReturn(detail());
+        mvc.perform(multipart("/api/submissions").file(pdf()).file(data("""
+                {"userId":3,"userData":{"title":"Artigo"}}
+                """))).andExpect(status().isCreated());
+        verify(submissions).create(argThat(request -> request.originalLink() == null), notNull());
     }
 
     @Test void deveServirPdfSemExporCaminhoDoFilesystem() throws Exception {

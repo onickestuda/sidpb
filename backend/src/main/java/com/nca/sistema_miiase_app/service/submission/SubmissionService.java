@@ -52,10 +52,26 @@ public class SubmissionService {
 
     @Transactional
     public SubmissionDetailDto create(SubmissionRequestDto request, MultipartFile pdf) {
-        String link = request.originalLink().strip();
-        validateLink(link);
+        // Source: the PDF, the original link, or both (at least one).
+        String link = request.originalLink() == null || request.originalLink().isBlank() ? null : request.originalLink().strip();
+        boolean hasPdf = pdf != null && !pdf.isEmpty();
+        if (!hasPdf && link == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Envie o PDF do artigo ou o link da fonte original.");
+        if (link != null) validateLink(link);
         validateCoordinates(request.userData());
         Usuario usuario = findActor(request.userId());
+        SubmissaoArtigo submission = new SubmissaoArtigo();
+        submission.setUsuario(usuario);
+        submission.setTitulo(request.userData().title());
+        submission.setLinkOriginal(link);
+        submission.setDadosUsuario(request.userData());
+        submission.setAno(request.userData().year());
+        submission.setDoenca(request.userData().firstDisease());
+        if (!hasPdf) {
+            // Link only: no file to read, so no automatic extraction; the curator works from the link.
+            submission.setExtractionStatus(ExtractionStatus.FAILED);
+            return detail(repository.saveAndFlush(submission));
+        }
         String key = storage.store(pdf);
         // A transação do banco pode falhar inclusive no commit: remover o arquivo nesse caso.
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -63,18 +79,11 @@ public class SubmissionService {
                 if (status != STATUS_COMMITTED) storage.delete(key);
             }
         });
-        SubmissaoArtigo submission = new SubmissaoArtigo();
-        submission.setUsuario(usuario);
-        submission.setTitulo(request.userData().title());
-        submission.setLinkOriginal(link);
         submission.setPdfPath(key);
-        String originalName = pdf.getOriginalFilename().replace('\\', '/');
+        String originalName = pdf.getOriginalFilename() == null ? "artigo.pdf" : pdf.getOriginalFilename().replace('\\', '/');
         originalName = originalName.substring(originalName.lastIndexOf('/') + 1);
-        submission.setPdfNome(originalName.length() > 255 ? "artigo.pdf" : originalName);
+        submission.setPdfNome(originalName.isBlank() || originalName.length() > 255 ? "artigo.pdf" : originalName);
         submission.setPdfTamanho(pdf.getSize());
-        submission.setDadosUsuario(request.userData());
-        submission.setAno(request.userData().year());
-        submission.setDoenca(request.userData().firstDisease());
         submission.setPdfSha256(sha256(pdf));
         if (pipelineMode) {
             // The real extraction runs in the pipeline worker, which claims this submission from the queue.
@@ -137,7 +146,7 @@ public class SubmissionService {
 
     private static String pdfPath(SubmissaoArtigo submission) {
         if (submission.getPdfPath() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Esta submissão veio de uma extração automática e não tem PDF anexado.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Esta submissão não tem PDF anexado.");
         }
         return submission.getPdfPath();
     }
@@ -154,7 +163,7 @@ public class SubmissionService {
         return new SubmissionDetailDto(s.getId(), s.getTitulo(), s.getLinkOriginal(), s.getPdfNome(), s.getPdfTamanho(),
                 s.getStatus(), s.getCreatedAt(), s.getUpdatedAt(), person(s.getUsuario()), s.getDadosUsuario(), s.getDadosLlm(),
                 s.getExtractionStatus(), s.getExtractedAt(), s.getExtractionModel(), s.isExtractionMock(),
-                s.getDadosCurados(), person(s.getCurador()), s.getReviewedAt(), s.getRejectionReason(), s.getOrigem());
+                s.getDadosCurados(), PersonDto.codeOnly(s.getCurador()), s.getReviewedAt(), s.getRejectionReason(), s.getOrigem());
     }
 
     private static String sha256(MultipartFile pdf) {
@@ -191,7 +200,7 @@ public class SubmissionService {
 
     private SubmissionSummaryDto summary(SubmissaoArtigo s) {
         return new SubmissionSummaryDto(s.getId(), s.getTitulo(), s.getLinkOriginal(), s.getStatus(),
-                s.getCreatedAt(), person(s.getUsuario()), person(s.getCurador()), s.getReviewedAt());
+                s.getCreatedAt(), person(s.getUsuario()), PersonDto.codeOnly(s.getCurador()), s.getReviewedAt(), s.getOrigem());
     }
 
     private PersonDto person(Usuario user) { return PersonDto.of(user); }

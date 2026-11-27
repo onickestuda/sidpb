@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
@@ -34,7 +34,7 @@ export function SubmissionForm({ onCreated }: { onCreated(): void }) {
         ...source, disease: null, parasite: null, vector: null, host: null, state: null, municipality: null,
         latitude: null, longitude: null, occurrences: filled,
       };
-      return submissionsService.create(user!.id, link.trim(), article, pdf!);
+      return submissionsService.create(user!.id, link.trim() || null, article, pdf);
     },
     onSuccess: () => {
       form.reset(EMPTY_ARTICLE); setLink(""); setPdf(null); setOccurrences([emptyDraft()]); setSuccess(true);
@@ -48,7 +48,7 @@ export function SubmissionForm({ onCreated }: { onCreated(): void }) {
   function submit(values: ArticleFormValues) {
     if (mutation.isPending || !user) return;
     setSuccess(false); setError(null);
-    const problem = pdf ? pdfProblem(pdf) : "Selecione o PDF do artigo.";
+    const problem = pdf ? pdfProblem(pdf) : !link.trim() ? "Envie o PDF do artigo ou o link da fonte original." : null;
     if (problem) { setError(problem); return; }
     const halfCoordinates = occurrences.findIndex((draft) => !draft.latitude.trim() !== !draft.longitude.trim());
     if (halfCoordinates >= 0) { setError(`Ocorrência ${halfCoordinates + 1}: informe latitude e longitude juntas ou deixe ambas vazias.`); return; }
@@ -62,29 +62,26 @@ export function SubmissionForm({ onCreated }: { onCreated(): void }) {
     <Card>
       <CardHeader>
         <CardTitle><h2>Enviar artigo para análise</h2></CardTitle>
-        <CardDescription>PDF, link original e título são obrigatórios. As ocorrências são opcionais: informe as que conhecer.</CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-8" onSubmit={form.handleSubmit(submit)} aria-busy={mutation.isPending}>
           <section className="space-y-4" aria-labelledby="submission-source">
             <h3 id="submission-source" className="font-semibold">Dados da fonte</h3>
             <fieldset disabled={mutation.isPending} className="grid gap-4 md:grid-cols-2">
+              <legend className="mb-2 text-sm font-medium">Fonte * <span className="font-normal text-muted-foreground">PDF, link ou ambos</span></legend>
               <div className="md:col-span-2">
                 <PdfField value={pdf} onChange={file => { setPdf(file); setError(null); }} disabled={mutation.isPending} />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="submission-link">Link da fonte original *</Label>
-                <Input id="submission-link" type="url" maxLength={1000} required value={link} onChange={e => setLink(e.target.value)} placeholder="https://doi.org/..." />
+                <Label htmlFor="submission-link">Link da fonte original</Label>
+                <Input id="submission-link" type="url" maxLength={1000} value={link} onChange={e => setLink(e.target.value)} placeholder="https://doi.org/..." />
               </div>
             </fieldset>
             <ArticleFields form={form} prefix="submission" fields={ARTICLE_ONLY_FIELDS} disabled={mutation.isPending} />
           </section>
 
           <section className="space-y-4" aria-labelledby="submission-occurrences">
-            <div className="space-y-1">
-              <h3 id="submission-occurrences" className="font-semibold">Ocorrências desta fonte</h3>
-              <p className="text-sm text-muted-foreground">Todos os campos são opcionais. Formulários deixados em branco são ignorados no envio.</p>
-            </div>
+            <h3 id="submission-occurrences" className="font-semibold">Ocorrências desta fonte</h3>
             <div className="grid gap-4 lg:grid-cols-2">
               {occurrences.map((draft, index) => (
                 <OccurrenceDraftForm key={draft.key} draft={draft} title={`Ocorrência ${index + 1}`} disabled={mutation.isPending}

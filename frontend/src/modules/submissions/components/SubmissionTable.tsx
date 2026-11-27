@@ -27,12 +27,12 @@ export function SubmissionTable({ data, mode, onPage, isFetching }: {
             <TableRow key={item.id}>
               <TableCell className="max-w-sm whitespace-normal">
                 <Link className="font-medium text-primary underline underline-offset-4" href={`${base}/submissoes/${item.id}`}>{item.title}</Link>
-                {mode === "curator" && (item.originalLink ? <a className="mt-1 block text-xs text-muted-foreground underline" href={item.originalLink} target="_blank" rel="noopener noreferrer">Fonte original</a> : <span className="mt-1 block text-xs text-muted-foreground">Extração automática</span>)}
+                {mode === "curator" && (item.originalLink ? <a className="mt-1 block text-xs text-muted-foreground underline" href={item.originalLink} target="_blank" rel="noopener noreferrer">Fonte original</a> : item.origin === "EXTRACAO" ? <span className="mt-1 block text-xs text-muted-foreground">Extração automática</span> : <span className="mt-1 block text-xs text-muted-foreground">Somente PDF</span>)}
               </TableCell>
               <TableCell>{formatDate(item.createdAt)}</TableCell>
               {mode === "curator" && <TableCell>{item.submittedBy.name}</TableCell>}
               <TableCell><SubmissionStatusBadge status={item.status} /></TableCell>
-              {mode === "curator" && <><TableCell>{item.reviewedBy ? <>{item.reviewedBy.name}{curatorCode(item.reviewedBy) && <span className="block font-mono text-xs text-muted-foreground">{curatorCode(item.reviewedBy)}{isSelfReview(item.submittedBy, item.reviewedBy) && " · autoavaliação"}</span>}</> : "—"}</TableCell><TableCell>{formatDate(item.reviewedAt)}</TableCell></>}
+              {mode === "curator" && <><TableCell>{item.reviewedBy ? <span className="font-mono text-xs">{curatorCode(item.reviewedBy) ?? "—"}{isSelfReview(item.submittedBy, item.reviewedBy) && <span className="block font-sans text-muted-foreground">autoavaliação</span>}</span> : "—"}</TableCell><TableCell>{formatDate(item.reviewedAt)}</TableCell></>}
             </TableRow>
           ))}</TableBody>
         </Table>

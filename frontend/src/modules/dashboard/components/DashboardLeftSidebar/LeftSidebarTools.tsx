@@ -34,6 +34,7 @@ export function LeftSidebarTools() {
     (state) => state.locateUser
   );
   const isLocating = useMapStore((state) => state.isLocating);
+  const locationActive = useMapStore((state) => state.locationActive);
   const locationError = useMapStore((state) => state.locationError);
 
   const toggleFullscreen = useMapStore(
@@ -54,6 +55,8 @@ export function LeftSidebarTools() {
         <ToolButton
           icon={LocateFixed}
           label={isLocating ? "Localizando..." : "Localizar"}
+          active={locationActive}
+          pressed={locationActive}
           disabled={isLocating}
           onClick={locateUser}
         />

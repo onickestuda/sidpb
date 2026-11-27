@@ -1,9 +1,8 @@
-import { BadgeCheck, CircleX } from "lucide-react";
 import type { SubmissionPerson, SubmissionStatus } from "@/entities/submission/submission.types";
 import { cn } from "@/lib/utils";
 import { formatDate } from "./SubmissionTable";
 
-// Public, non-personal identifier shown next to the curator name (never the e-mail).
+// Curators are shown only by this public code (never the name or e-mail).
 export const curatorCode = (person: SubmissionPerson) => (person.code ? `CUR-${person.code}` : null);
 
 export const isSelfReview = (submittedBy: SubmissionPerson, reviewedBy: SubmissionPerson | null) =>
@@ -25,18 +24,16 @@ export function CurationStamp({ status, submittedBy, reviewedBy, reviewedAt }: C
   return (
     <div
       role="note"
-      aria-label={`${approved ? "Aprovado" : "Reprovado"} por ${reviewedBy.name}`}
+      aria-label={`${approved ? "Aprovado" : "Reprovado"} por ${code ?? "curador"}`}
       className={cn(
-        "inline-flex max-w-full items-start gap-3 border-2 border-dashed px-4 py-3",
+        "inline-flex max-w-full border-2 border-dashed px-4 py-3",
         approved ? "border-primary/60 bg-primary/5 text-primary" : "border-destructive/60 bg-destructive/5 text-destructive",
       )}
     >
-      {approved ? <BadgeCheck className="mt-0.5 size-5 shrink-0" aria-hidden /> : <CircleX className="mt-0.5 size-5 shrink-0" aria-hidden />}
       <div className="min-w-0 space-y-0.5">
         <p className="text-xs font-semibold uppercase tracking-wide">{approved ? "Aprovado na curadoria" : "Reprovado na curadoria"}</p>
         <p className="text-sm text-foreground">
-          Curado por <span className="font-medium">{reviewedBy.name}</span>
-          {code && <span className="ml-2 font-mono text-xs text-muted-foreground">{code}</span>}
+          Curado por <span className="font-mono font-medium">{code ?? "—"}</span>
         </p>
         <p className="text-xs text-muted-foreground">
           {formatDate(reviewedAt)}

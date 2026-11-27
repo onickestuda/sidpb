@@ -2,11 +2,12 @@ import type { ArticleData, SubmissionDetail, SubmissionPage } from "@/entities/s
 import { apiUrl, apiRequest } from "@/lib/apiClient";
 
 export const submissionsService = {
-  create(userId: number, originalLink: string, userData: ArticleData, pdf: File) {
+  /** The source is the PDF, the original link, or both (the API requires at least one). */
+  create(userId: number, originalLink: string | null, userData: ArticleData, pdf: File | null) {
     const body = new FormData();
     // PROVISÓRIO: userId vem do Zustand; será substituído pela identidade do servidor.
     body.append("data", new Blob([JSON.stringify({ userId, originalLink, userData })], { type: "application/json" }));
-    body.append("pdf", pdf);
+    if (pdf) body.append("pdf", pdf);
     return apiRequest<SubmissionDetail>("/api/submissions", { method: "POST", body, timeoutMs: 60000 });
   },
   list(userId: number, page: number, signal?: AbortSignal) {

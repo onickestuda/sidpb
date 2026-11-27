@@ -8,6 +8,7 @@ import type { Occurrence } from "@/entities/occurrence/occurrence.types";
 import {
   MIN_ZOOM,
   MAX_ZOOM,
+  SATELLITE_MAX_ZOOM,
 } from "../components/LeafletMap/map-zoom";
 
 export type MapView = "street" | "satellite";
@@ -38,6 +39,10 @@ interface MapStore {
   legendVisible: boolean;
 
   isLocating: boolean;
+
+  /** "Localizar" is on: the user's pin and accuracy circle are shown. */
+
+  locationActive: boolean;
   locationError: string | null;
 
   selectedOccurrence: Occurrence | null;
@@ -87,6 +92,8 @@ export const useMapStore = create<MapStore>((set, get) => ({
   legendVisible: false,
 
   isLocating: false,
+
+  locationActive: false,
   locationError: null,
 
   selectedOccurrence: null,
@@ -145,19 +152,24 @@ export const useMapStore = create<MapStore>((set, get) => ({
     });
   },
 
-  // Google Maps-like: ask the browser for the position, then fly (animated zoom) to it.
-  // The pin itself is drawn by UserLocationMarker, which listens to the same events.
+  // Toggle. Off -> on: ask the browser for the position and fly to it (zoom limited to the satellite
+  // layer, so imagery never runs out). On -> off: only hides the pin and the accuracy circle (drawn by
+  // UserLocationMarker), keeping the current zoom and position.
   locateUser() {
     const map = get().map;
     if (!map || get().isLocating) return;
+    if (get().locationActive) {
+      set({ locationActive: false, locationError: null });
+      return;
+    }
 
     const finish = (patch: Partial<MapStore>) => {
       detachLocateRequest?.();
       set({ isLocating: false, ...patch });
     };
     const onFound = (event: L.LocationEvent) => {
-      finish({ locationError: null });
-      map.flyTo(event.latlng, MAX_ZOOM, LOCATE_FLIGHT);
+      finish({ locationError: null, locationActive: true });
+      map.flyTo(event.latlng, SATELLITE_MAX_ZOOM, LOCATE_FLIGHT);
     };
     const onError = (event: { code?: number }) => {
       finish({ locationError: LOCATION_ERRORS[event.code ?? 0] ?? UNSUPPORTED_LOCATION });

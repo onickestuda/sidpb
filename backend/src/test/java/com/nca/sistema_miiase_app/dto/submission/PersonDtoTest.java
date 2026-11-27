@@ -21,6 +21,13 @@ class PersonDtoTest {
         assertNull(PersonDto.of(null));
     }
 
+    @Test void curadorApareceSoPeloCodigo() {
+        PersonDto curator = PersonDto.codeOnly(user(7, "Maria", "kc-subject-1"));
+        assertNull(curator.name());
+        assertEquals(PersonDto.of(user(7, "Maria", "kc-subject-1")).code(), curator.code());
+        assertNull(PersonDto.codeOnly(null));
+    }
+
     @Test void codigoDaContaLogadaEhOMesmoDoCarimbo() {
         assertEquals(PersonDto.of(user(7, "Maria", "kc-subject-1")).code(), PersonDto.publicCode("kc-subject-1"));
     }

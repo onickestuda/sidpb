@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { ChevronRight, ExternalLink, KeyRound, Laptop, ShieldAlert, UserRound } from "lucide-react";
+import { useState } from "react";
+import { ChevronRight, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AuthUser, UserRole } from "@/entities/user/user.types";
@@ -16,16 +16,10 @@ function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]?.toUpperCase()).join("") || "?";
 }
 
-function SettingRow({ icon, title, description, href, action }: {
-  icon: ReactNode; title: string; description: string; href: string; action: string;
-}) {
+function SettingRow({ title, href, action }: { title: string; href: string; action: string }) {
   return (
     <a href={href} className="group flex items-center gap-4 px-6 py-4 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none">
-      <span className="flex size-9 shrink-0 items-center justify-center bg-primary/10 text-primary">{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium">{title}</span>
-        <span className="block text-sm text-muted-foreground">{description}</span>
-      </span>
+      <span className="min-w-0 flex-1 text-sm font-medium">{title}</span>
       <span className="hidden items-center gap-1 text-sm font-medium text-primary sm:flex">
         {action}<ChevronRight className="size-4 transition-transform group-hover:translate-x-0.5" />
       </span>
@@ -69,7 +63,6 @@ export function AccountSettings({ user }: { user: AuthUser }) {
       <Card className="gap-0 py-0">
         <CardHeader className="border-b px-6 py-4">
           <CardTitle><h2 className="text-base">Dados pessoais</h2></CardTitle>
-          <CardDescription>Nome e e-mail usados nas suas submissões e avaliações.</CardDescription>
         </CardHeader>
         <dl className="divide-y text-sm">
           <div className="grid gap-1 px-6 py-3 sm:grid-cols-[160px_1fr]"><dt className="text-muted-foreground">Nome</dt><dd className="font-medium">{user.name}</dd></div>
@@ -84,24 +77,17 @@ export function AccountSettings({ user }: { user: AuthUser }) {
       <Card className="gap-0 py-0">
         <CardHeader className="border-b px-6 py-4">
           <CardTitle><h2 className="text-base">Acesso e segurança</h2></CardTitle>
-          <CardDescription>Formas de entrar na mesma conta. Seus dados e histórico continuam vinculados a ela.</CardDescription>
         </CardHeader>
         <div className="divide-y">
-          <SettingRow icon={<KeyRound className="size-4" />} title="Senha" href={accountUrl("password")} action="Configurar"
-            description="Crie ou altere a senha para entrar com e-mail." />
-          <SettingRow icon={<span className="text-sm font-bold">G</span>} title="Conta Google" href={accountUrl("google")} action="Vincular"
-            description="Entre com o Google sem perder o histórico desta conta." />
-          <SettingRow icon={<Laptop className="size-4" />} title="Sessões e dispositivos" href={accountUrl("sessions")} action="Ver sessões"
-            description="Veja onde sua conta está conectada e encerre acessos." />
+          <SettingRow title="Senha" href={accountUrl("password")} action="Configurar" />
+          <SettingRow title="Conta Google" href={accountUrl("google")} action="Vincular" />
+          <SettingRow title="Sessões e dispositivos" href={accountUrl("sessions")} action="Ver sessões" />
         </div>
-        <p className="flex items-center gap-2 border-t px-6 py-3 text-xs text-muted-foreground">
-          <ExternalLink className="size-3.5" />Essas opções abrem o serviço de identidade do SIDPB, que pode pedir para confirmar sua identidade.
-        </p>
       </Card>
 
       <Card className="gap-0 border-destructive/40 py-0">
         <CardHeader className="px-6 py-4">
-          <CardTitle><h2 className="flex items-center gap-2 text-base text-destructive"><ShieldAlert className="size-4" />Excluir conta</h2></CardTitle>
+          <CardTitle><h2 className="text-base text-destructive">Excluir conta</h2></CardTitle>
           <CardDescription>
             A exclusão é permanente: seus dados pessoais são removidos e o acesso é encerrado. Contribuições científicas e
             autoria bibliográfica são preservadas, com o vínculo de conta anonimizado. Um novo cadastro não recupera esse histórico.

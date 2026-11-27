@@ -135,7 +135,6 @@ export function OccurrenceDraftForm({ draft, title, disabled = false, showSeal =
               className="block w-full rounded-[2px] border border-input bg-background px-2 py-1.5 text-sm">
               {SELECTABLE_SEALS.map((seal) => <option key={seal} value={seal}>{LOCATION_SEALS[seal]}</option>)}
             </select>
-            <p className="text-[11px] text-muted-foreground">Exata exige latitude e longitude; aproximada usa o centro do município.</p>
           </div>
         )}
         <div className="space-y-1 sm:col-span-2">

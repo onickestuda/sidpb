@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, MapPinOff } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 
@@ -93,7 +93,6 @@ export function DashboardMap({
           onClick={() => selectOccurrences(unlocatedList)}
           className="absolute bottom-8 left-4 z-20 flex items-center gap-2 border border-amber-300 bg-background px-3 py-2 text-left text-xs shadow-lg hover:bg-amber-50"
         >
-          <MapPinOff className="size-4 shrink-0 text-amber-700" aria-hidden />
           <span>
             <span className="font-semibold">{unlocatedList.length} {unlocatedList.length === 1 ? "ocorrência" : "ocorrências"} sem local confirmado</span>
             <span className="block text-muted-foreground">Não aparecem no mapa · ver lista</span>

@@ -43,27 +43,28 @@ export function userOccurrences(data: ArticleData | null | undefined): UserOccur
 }
 
 // code: public 6-hex identifier from the API (never the e-mail); shown as CUR-XXXXXX in curation stamps.
-export interface SubmissionPerson { id: number; name: string; code?: string | null; }
+// name is null for curators (reviewedBy): they are identified only by the public code.
+export interface SubmissionPerson { id: number; name: string | null; code?: string | null; }
 
 export interface SubmissionSummary {
   id: number;
   title: string;
-  /** Null for automatic extractions. */
+  /** Null for automatic extractions and for user submissions with only the PDF. */
   originalLink: string | null;
   status: SubmissionStatus;
   createdAt: string;
   submittedBy: SubmissionPerson;
   reviewedBy: SubmissionPerson | null;
   reviewedAt: string | null;
+  /** USUARIO (sent on the site) or EXTRACAO (received from the extraction pipeline). */
+  origin?: "USUARIO" | "EXTRACAO";
 }
 
 export interface SubmissionDetail extends SubmissionSummary {
   updatedAt: string;
-  /** Null for automatic extractions (no PDF upload). */
+  /** Null when there is no PDF (automatic extraction, or a user submission with only the link). */
   pdfName: string | null;
   pdfSize: number | null;
-  /** USUARIO (manual upload) or EXTRACAO (received from the LLM pipeline). */
-  origin?: "USUARIO" | "EXTRACAO";
   userData: ArticleData;
   llmData: ArticleData | null;
   extractionStatus: ExtractionStatus;

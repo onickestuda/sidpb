@@ -15,7 +15,7 @@ export function AppHeader({ compact = false, action = "dashboard" }: AppHeaderPr
   return (
     <header className="shrink-0 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className={compact ? "px-4 h-12 flex items-center justify-between gap-2" : "container mx-auto px-4 h-16 flex items-center justify-between gap-2"}>
-        <Link href="/" className="flex shrink-0 items-center">
+        <Link href="/dashboard" className="flex shrink-0 items-center" aria-label="SIDPB: ir para o mapa">
           <Image
             src={`${basePath}/logo.svg`}
             alt="SIDPB"

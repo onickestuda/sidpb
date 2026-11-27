@@ -8,6 +8,8 @@ interface ToolButtonProps {
   label: string;
   active?: boolean;
   disabled?: boolean;
+  /** For on/off tools: exposes the state to assistive technology (aria-pressed). */
+  pressed?: boolean;
   onClick?: () => void;
 }
 
@@ -16,6 +18,7 @@ export function ToolButton({
   label,
   active = false,
   disabled = false,
+  pressed,
   onClick,
 }: ToolButtonProps) {
   return (
@@ -24,6 +27,7 @@ export function ToolButton({
       onClick={onClick}
       disabled={disabled}
       aria-busy={disabled || undefined}
+      aria-pressed={pressed}
       className={cn(
         "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors disabled:cursor-wait disabled:opacity-70",
         active

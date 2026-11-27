@@ -5,9 +5,10 @@ import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 
 import { basePath } from "@/lib/publicConfig";
+import { useMapStore } from "@/modules/map/store/mapStore";
 
-// "Você está aqui", like Google Maps: once found, the position stays on the map while the
-// page is open. Clicking "Localizar" again only refreshes it (the store flies the camera).
+// "Você está aqui", like Google Maps: shown while "Localizar" is on; turning it off removes the pin
+// and the accuracy circle without moving the map (the store handles the camera).
 // Icons: pointhi/leaflet-color-markers (BSD-2-Clause, see public/map/location-marker).
 const ICONS = `${basePath}/map/location-marker`;
 const LOCATION_COLOR = "#9c2bcb";
@@ -25,6 +26,15 @@ export function UserLocationMarker() {
   const markerRef = useRef<L.Marker | null>(null);
   const accuracyRef = useRef<L.Circle | null>(null);
   const map = useMap();
+  const active = useMapStore((state) => state.locationActive);
+
+  useEffect(() => {
+    if (active) return;
+    markerRef.current?.remove();
+    accuracyRef.current?.remove();
+    markerRef.current = null;
+    accuracyRef.current = null;
+  }, [active]);
 
   useEffect(() => {
     const onLocationFound = (event: L.LocationEvent) => {

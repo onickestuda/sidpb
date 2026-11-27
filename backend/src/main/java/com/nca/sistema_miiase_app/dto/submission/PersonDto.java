@@ -15,6 +15,11 @@ public record PersonDto(Integer id, String name, String code) {
         return user == null ? null : new PersonDto(user.getId(), user.getNome(), publicCode(user));
     }
 
+    /** Curators are identified only by their public code, never by name (privacy of who reviewed). */
+    public static PersonDto codeOnly(Usuario user) {
+        return user == null ? null : new PersonDto(user.getId(), null, publicCode(user));
+    }
+
     static String publicCode(Usuario user) {
         return publicCode(user.getKeycloakId() != null ? user.getKeycloakId() : "local:" + user.getId());
     }
