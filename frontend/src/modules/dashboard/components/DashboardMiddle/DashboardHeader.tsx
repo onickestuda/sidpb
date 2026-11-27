@@ -39,7 +39,7 @@ export function DashboardHeader() {
           <SearchForm
             initialValue={search}
             onSearch={handleSearch}
-            placeholder="Pesquise por doença, parasito, hospedeiro..."
+            placeholder="Pesquise por doença, agente etiológico, hospedeiro..."
           />
         </div>
       </div>

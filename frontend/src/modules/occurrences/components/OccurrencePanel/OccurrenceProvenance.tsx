@@ -68,7 +68,7 @@ const EXTRA_LABELS: Record<string, string> = {
   host_sex: "Sexo do hospedeiro",
   host_age: "Idade do hospedeiro",
   disease_original: "Doença (como no texto)",
-  parasite_raw_name: "Parasito (como no texto)",
+  parasite_raw_name: "Agente etiológico (como no texto)",
   location_raw: "Local (como no texto)",
   location_note: "Observação sobre o local",
 };

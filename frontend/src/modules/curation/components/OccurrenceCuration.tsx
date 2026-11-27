@@ -9,6 +9,7 @@ import {
   OccurrenceDraftForm, draftFromExtraction, draftFromUser, emptyDraft, type OccurrenceDraft,
 } from "@/modules/submissions/components/OccurrenceDraftForm";
 import { ExtractionSummary } from "./ExtractionSummary";
+import { etiologicAgent } from "@/lib/etiologic-agent";
 
 function Field({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === "") return null;
@@ -47,8 +48,7 @@ function UserCard({ occurrence, order, onCopy }: { occurrence: UserOccurrence; o
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-1 text-xs">
         <Field label="Doença" value={occurrence.disease} />
         <Field label="Hospedeiro" value={[occurrence.host, occurrence.hostCategory].filter(Boolean).join(" · ")} />
-        <Field label="Parasito" value={occurrence.parasite} />
-        <Field label="Agente etiológico" value={occurrence.vector} />
+        <Field label="Agente etiológico" value={etiologicAgent(occurrence.parasite, occurrence.vector)} />
         <Field label="Local" value={[occurrence.municipality, occurrence.state].filter(Boolean).join(" / ")} />
         <Field label="Coordenadas" value={occurrence.latitude !== null && occurrence.longitude !== null ? `${occurrence.latitude}, ${occurrence.longitude}` : null} />
         <Field label="Ano do evento" value={occurrence.year} />
@@ -64,8 +64,7 @@ function ExtractedCard({ occurrence, order, onCopy }: { occurrence: ExtractedOcc
       <p className="text-sm font-semibold">{occurrence.disease ?? "Doença não informada"}</p>
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-1 text-xs">
         <Field label="Hospedeiro" value={[occurrence.host, occurrence.hostCategory].filter(Boolean).join(" · ")} />
-        <Field label="Parasito" value={occurrence.parasite} />
-        <Field label="Agente etiológico" value={occurrence.vector} />
+        <Field label="Agente etiológico" value={etiologicAgent(occurrence.parasite, occurrence.vector)} />
         <Field label="Local" value={[occurrence.municipality, occurrence.state].filter(Boolean).join(" / ") || occurrence.locationText} />
         <Field label="Ano do evento" value={occurrence.year} />
       </dl>

@@ -41,7 +41,6 @@ const FIELDS: { key: keyof ArticleFormValues; label: string; max: number; type?:
   { key: "doi", label: "DOI", max: 200 },
   { key: "source", label: "Revista / fonte", max: 200 },
   { key: "disease", label: "Doença", max: 200 },
-  { key: "parasite", label: "Parasito", max: 200 },
   { key: "vector", label: "Agente etiológico", max: 200 },
   { key: "host", label: "Hospedeiro", max: 200 },
   { key: "state", label: "Estado", max: 100 },
@@ -61,10 +60,10 @@ export function ArticleFields({ form, prefix, disabled = false, fields }: {
     <fieldset disabled={disabled} className="grid gap-4 md:grid-cols-2">
       {FIELDS.filter(({ key }) => !fields || fields.includes(key)).map(({ key, label, max, type, min, numericMax }) => (
         <div key={key} className={key === "title" ? "space-y-2 md:col-span-2" : "space-y-2"}>
-          <Label htmlFor={`${prefix}-${key}`}>{label}{key === "title" ? " *" : ""}</Label>
-          <Input id={`${prefix}-${key}`} type={type ?? "text"} required={key === "title"}
+          <Label htmlFor={`${prefix}-${key}`}>{label}</Label>
+          <Input id={`${prefix}-${key}`} type={type ?? "text"}
             maxLength={max} min={min} max={numericMax} step={key === "year" ? 1 : "any"}
-            {...register(key, { validate: key === "title" ? value => Boolean(value.trim()) || "Informe o título." : undefined })} />
+            {...register(key)} />
           {errors[key] && <p role="alert" className="text-sm text-destructive">{errors[key]?.message}</p>}
         </div>
       ))}

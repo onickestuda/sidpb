@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { CuratedOccurrence, ExtractedOccurrence, LocationSeal, UserOccurrence } from "@/entities/submission/submission.types";
 import { LOCATION_SEALS } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceProvenance";
+import { etiologicAgent } from "@/lib/etiologic-agent";
 
 /**
  * Editable state for one occurrence, shared by the submission form (user) and the curation form.
@@ -47,7 +48,7 @@ export function emptyDraft(): OccurrenceDraft {
 export function draftFromExtraction(occurrence: ExtractedOccurrence): OccurrenceDraft {
   return {
     key: nextKey(), sourceId: occurrence.id,
-    disease: text(occurrence.disease), parasite: text(occurrence.parasite), vector: text(occurrence.vector),
+    disease: text(occurrence.disease), parasite: "", vector: text(etiologicAgent(occurrence.parasite, occurrence.vector)),
     host: text(occurrence.host), hostCategory: text(occurrence.hostCategory),
     municipality: text(occurrence.municipality), state: text(occurrence.state),
     // Municipality-level rows carry the centroid: never prefill it as if it were an exact point.
@@ -59,7 +60,7 @@ export function draftFromExtraction(occurrence: ExtractedOccurrence): Occurrence
 
 export function draftFromUser(occurrence: UserOccurrence): OccurrenceDraft {
   return {
-    ...emptyDraft(), disease: text(occurrence.disease), parasite: text(occurrence.parasite), vector: text(occurrence.vector),
+    ...emptyDraft(), disease: text(occurrence.disease), vector: text(etiologicAgent(occurrence.parasite, occurrence.vector)),
     host: text(occurrence.host), hostCategory: text(occurrence.hostCategory), municipality: text(occurrence.municipality),
     state: text(occurrence.state), latitude: text(occurrence.latitude), longitude: text(occurrence.longitude),
     year: text(occurrence.year), notes: text(occurrence.notes),
@@ -69,7 +70,8 @@ export function draftFromUser(occurrence: UserOccurrence): OccurrenceDraft {
 
 export function draftToUser(draft: OccurrenceDraft): UserOccurrence {
   return {
-    disease: value(draft.disease), parasite: value(draft.parasite), vector: value(draft.vector), host: value(draft.host),
+    // "Agente etiológico" is the parasite: one field, kept in vector (parasite stays empty).
+    disease: value(draft.disease), parasite: null, vector: value(draft.vector), host: value(draft.host),
     hostCategory: value(draft.hostCategory), year: number(draft.year), state: value(draft.state),
     municipality: value(draft.municipality), latitude: number(draft.latitude), longitude: number(draft.longitude),
     notes: value(draft.notes),
@@ -88,7 +90,6 @@ export function isEmptyDraft(draft: OccurrenceDraft): boolean {
 
 const FIELDS: { key: keyof OccurrenceDraft; label: string; type?: string }[] = [
   { key: "disease", label: "Doença" },
-  { key: "parasite", label: "Parasito" },
   { key: "vector", label: "Agente etiológico" },
   { key: "host", label: "Hospedeiro" },
   { key: "hostCategory", label: "Categoria do hospedeiro" },

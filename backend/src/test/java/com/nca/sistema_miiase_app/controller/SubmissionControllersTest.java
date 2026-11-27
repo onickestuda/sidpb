@@ -53,10 +53,18 @@ class SubmissionControllersTest {
                 .andExpect(jsonPath("$.submittedBy.email").doesNotExist());
     }
 
-    @Test void deveExigirTituloEUsuarioNoMultipart() throws Exception {
+    @Test void deveAceitarSemTitulo() throws Exception {
+        when(submissions.create(any(), any())).thenReturn(detail());
         mvc.perform(multipart("/api/submissions").file(pdf()).file(data("""
                 {"originalLink":"https://example.org","userData":{"title":""}}
-                """))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").exists());
+                """))).andExpect(status().isCreated());
+        verify(submissions).create(argThat(request -> request.userData().title().isEmpty()), notNull());
+    }
+
+    @Test void deveRecusarTituloLongoDemais() throws Exception {
+        mvc.perform(multipart("/api/submissions").file(pdf()).file(data(
+                "{\"originalLink\":\"https://example.org\",\"userData\":{\"title\":\"" + "x".repeat(501) + "\"}}"
+                ))).andExpect(status().isBadRequest());
         verifyNoInteractions(submissions);
     }
 

@@ -12,7 +12,8 @@ import jakarta.validation.constraints.Size;
 
 // Mesmo formato para usuário, extração e resultado curado, em campos separados.
 public record ArticleDataDto(
-        @NotBlank @Size(max = 500) String title,
+        /** Optional: without it the submission is listed by the PDF name or the link. */
+        @Size(max = 500) String title,
         @Size(max = 50) List<@NotBlank @Size(max = 200) String> authors,
         @Min(1500) @Max(2100) Integer year,
         @Size(max = 200) String doi,

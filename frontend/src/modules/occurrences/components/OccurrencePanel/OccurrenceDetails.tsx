@@ -1,6 +1,7 @@
 import type { Occurrence } from "@/entities/occurrence/occurrence.types";
 import { formatOccurrenceDisplayDate, occurrenceField } from "../../utils/occurrence-presentation";
 import { OccurrenceSources } from "./OccurrenceSources";
+import { etiologicAgent } from "@/lib/etiologic-agent";
 
 export function OccurrenceDetails({ occurrence }: { occurrence: Occurrence }) {
   const fields = [
@@ -14,8 +15,7 @@ export function OccurrenceDetails({ occurrence }: { occurrence: Occurrence }) {
     ["Categoria", occurrenceField(occurrence.hostCategory)],
     ["Sexo", occurrenceField(occurrence.hostSex)],
     ["Idade", occurrenceField(occurrence.hostAge)],
-    ["Agente etiológico", occurrenceField(occurrence.vector)],
-    ["Parasito", occurrenceField(occurrence.parasite)],
+    ["Agente etiológico", etiologicAgent(occurrenceField(occurrence.parasite), occurrenceField(occurrence.vector))],
     ["Desfecho", occurrenceField(occurrence.outcome)],
   ].filter(([, value]) => value);
 

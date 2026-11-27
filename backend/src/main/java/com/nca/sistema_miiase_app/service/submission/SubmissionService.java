@@ -62,7 +62,7 @@ public class SubmissionService {
         Usuario usuario = findActor(request.userId());
         SubmissaoArtigo submission = new SubmissaoArtigo();
         submission.setUsuario(usuario);
-        submission.setTitulo(request.userData().title());
+        submission.setTitulo(displayTitle(request.userData().title(), hasPdf ? pdf.getOriginalFilename() : null, link));
         submission.setLinkOriginal(link);
         submission.setDadosUsuario(request.userData());
         submission.setAno(request.userData().year());
@@ -207,6 +207,18 @@ public class SubmissionService {
 
     private String contains(String input) {
         return "%" + input.strip().toLowerCase(Locale.ROOT).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+    }
+
+    /** The title is optional: fall back to the PDF name (without .pdf), then the link, so the queue never shows a blank title. */
+    static String displayTitle(String title, String pdfName, String link) {
+        if (title != null && !title.isBlank()) return title.strip();
+        if (pdfName != null && !pdfName.isBlank()) {
+            String name = pdfName.replace('\\', '/');
+            name = name.substring(name.lastIndexOf('/') + 1).replaceFirst("(?i)\\.pdf$", "").strip();
+            if (!name.isBlank()) return name.length() > 500 ? name.substring(0, 500) : name;
+        }
+        if (link != null) return link.length() > 500 ? link.substring(0, 500) : link;
+        return "Sem título";
     }
 
     private void validateLink(String link) {

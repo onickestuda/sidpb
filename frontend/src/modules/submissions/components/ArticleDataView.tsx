@@ -1,15 +1,17 @@
 import type { ArticleData, UserOccurrence } from "@/entities/submission/submission.types";
 import { userOccurrences } from "@/entities/submission/submission.types";
+import { etiologicAgent } from "@/lib/etiologic-agent";
 
 const SOURCE_FIELDS: [keyof ArticleData, string][] = [
   ["title", "Título"], ["authors", "Autores"], ["year", "Ano"], ["doi", "DOI"], ["source", "Revista / fonte"], ["notes", "Observações"],
 ];
 const ALL_FIELDS: [keyof ArticleData, string][] = [
-  ...SOURCE_FIELDS.slice(0, 5), ["disease", "Doença"], ["parasite", "Parasito"], ["vector", "Agente etiológico"],
+  ...SOURCE_FIELDS.slice(0, 5), ["disease", "Doença"], ["vector", "Agente etiológico"],
   ["host", "Hospedeiro"], ["state", "Estado"], ["municipality", "Município"],
   ["latitude", "Latitude"], ["longitude", "Longitude"], ["notes", "Observações"],
 ];
 function value(data: ArticleData, key: keyof ArticleData) {
+  if (key === "vector") return etiologicAgent(data.parasite, data.vector) ?? "";
   const field = data[key];
   return Array.isArray(field) ? field.join("; ") : field === null || field === undefined ? "" : String(field);
 }
@@ -31,7 +33,7 @@ export function ArticleDataView({ data, compare, fields = "all" }: { data: Artic
 }
 
 const OCCURRENCE_FIELDS: [keyof UserOccurrence, string][] = [
-  ["disease", "Doença"], ["parasite", "Parasito"], ["vector", "Agente etiológico"], ["host", "Hospedeiro"],
+  ["disease", "Doença"], ["vector", "Agente etiológico"], ["host", "Hospedeiro"],
   ["hostCategory", "Categoria do hospedeiro"], ["year", "Ano do evento"], ["state", "Estado"], ["municipality", "Município"],
   ["latitude", "Latitude"], ["longitude", "Longitude"], ["notes", "Observações"],
 ];
@@ -46,8 +48,9 @@ export function UserOccurrencesView({ data }: { data: ArticleData }) {
         <li key={index} className="rounded-[2px] border border-border p-3">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ocorrência {index + 1}</p>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-1 text-sm">
-            {OCCURRENCE_FIELDS.filter(([key]) => occurrence[key] !== null && occurrence[key] !== "").map(([key, label]) => (
-              <div key={key} className="contents"><dt className="text-muted-foreground">{label}:</dt><dd className="break-words">{String(occurrence[key])}</dd></div>
+            {OCCURRENCE_FIELDS.map(([key, label]) => [key, label, key === "vector" ? etiologicAgent(occurrence.parasite, occurrence.vector) : occurrence[key]] as const)
+              .filter(([, , shown]) => shown !== null && shown !== "").map(([key, label, shown]) => (
+              <div key={key} className="contents"><dt className="text-muted-foreground">{label}:</dt><dd className="break-words">{String(shown)}</dd></div>
             ))}
           </dl>
         </li>

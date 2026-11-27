@@ -18,6 +18,7 @@ import {
   sortOccurrences,
   type OccurrenceSortOrder,
 } from "@/modules/occurrences/utils/occurrence-presentation";
+import { etiologicAgent } from "@/lib/etiologic-agent";
 
 export function DashboardRightSidebar({ occurrences }: { occurrences: Occurrence[] }) {
   const selectedOccurrence = useMapStore((state) => state.selectedOccurrence);
@@ -89,8 +90,7 @@ export function DashboardRightSidebar({ occurrences }: { occurrences: Occurrence
           const expanded = expandedId === occurrence.id;
           const fields = [
             ["Hospedeiro", occurrenceField(occurrence.host)],
-            ["Agente etiológico", occurrenceField(occurrence.vector)],
-            ["Parasito", occurrenceField(occurrence.parasite)],
+            ["Agente etiológico", etiologicAgent(occurrenceField(occurrence.parasite), occurrenceField(occurrence.vector))],
           ].filter(([, value]) => value);
           return (
             <article key={occurrence.id} data-occurrence-id={occurrence.id}
