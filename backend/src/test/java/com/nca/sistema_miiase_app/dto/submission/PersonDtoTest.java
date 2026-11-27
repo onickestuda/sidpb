@@ -20,4 +20,8 @@ class PersonDtoTest {
         assertNotEquals(person.code(), PersonDto.of(user(7, "Maria", null)).code(), "conta sem Keycloak usa o id local");
         assertNull(PersonDto.of(null));
     }
+
+    @Test void codigoDaContaLogadaEhOMesmoDoCarimbo() {
+        assertEquals(PersonDto.of(user(7, "Maria", "kc-subject-1")).code(), PersonDto.publicCode("kc-subject-1"));
+    }
 }

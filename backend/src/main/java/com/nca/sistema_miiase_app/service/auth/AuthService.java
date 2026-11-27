@@ -54,7 +54,8 @@ public class AuthService {
                 role=EXCLUDED.role, ativo=true
             RETURNING id_usuario
             """, Integer.class, jwt.getSubject(), name, email, role.name());
-        return new LoginResponseDto(id, name, email, role);
+        return new LoginResponseDto(id, name, email, role,
+                com.nca.sistema_miiase_app.dto.submission.PersonDto.publicCode(jwt.getSubject()));
     }
     @Transactional
     public Integer currentId() { return currentUser().id(); }

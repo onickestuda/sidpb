@@ -125,7 +125,7 @@ function UserList({ team=false }: { team?: boolean }) {
   </div>;
 }
 export function AdminUsers() {
-  return <ProfileLayout role="ADMIN" title="Usuários e permissões"><p className="max-w-3xl text-muted-foreground">Gerencie as pessoas que participam do SIDPB. Escolha perfis prontos, acompanhe a equipe de curadoria e consulte o histórico de alterações.</p>
+  return <ProfileLayout role="ADMIN" title="Usuários e permissões">
     <Tabs defaultValue="users"><TabsList aria-label="Administração de usuários"><TabsTrigger value="users">Usuários</TabsTrigger><TabsTrigger value="curation">Curadoria</TabsTrigger><TabsTrigger value="history">Histórico</TabsTrigger></TabsList><TabsContent value="users" className="pt-4"><UserList /></TabsContent><TabsContent value="curation" className="pt-4"><UserList team /></TabsContent><TabsContent value="history" className="pt-4"><History /></TabsContent></Tabs>
   </ProfileLayout>;
 }

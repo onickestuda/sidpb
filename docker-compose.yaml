@@ -65,6 +65,8 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-}
       KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:?Configure KEYCLOAK_PUBLIC_URL no .env}
+      # Para onde o logo da página "Minha conta" do Keycloak leva de volta.
+      SIDPB_APP_URL: ${AUTH_ORIGIN}${NEXT_PUBLIC_BASE_PATH}/
     depends_on:
       db:
         condition: service_healthy

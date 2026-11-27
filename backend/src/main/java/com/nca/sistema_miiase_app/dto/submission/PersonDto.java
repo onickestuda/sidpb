@@ -16,7 +16,11 @@ public record PersonDto(Integer id, String name, String code) {
     }
 
     static String publicCode(Usuario user) {
-        String identity = user.getKeycloakId() != null ? user.getKeycloakId() : "local:" + user.getId();
+        return publicCode(user.getKeycloakId() != null ? user.getKeycloakId() : "local:" + user.getId());
+    }
+
+    /** Public code of a Keycloak subject (or "local:id"): the same value shown in curation stamps. */
+    public static String publicCode(String identity) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
                     .digest(("sidpb-person:" + identity).getBytes(StandardCharsets.UTF_8));

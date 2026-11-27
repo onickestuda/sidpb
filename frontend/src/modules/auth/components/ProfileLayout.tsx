@@ -24,6 +24,7 @@ export function ProfileLayout({ role, title, children, showIdentity = true, wide
                 {showIdentity && <>
                   <p>Olá, {user?.name}</p>
                   <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  {user?.code && <p className="text-xs text-muted-foreground" title="Código público da conta">CUR-{user.code}</p>}
                 </>}
               </div>
               {/* <div className="flex gap-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { ChevronRight, ExternalLink, KeyRound, Laptop, Mail, ShieldAlert, UserRound } from "lucide-react";
+import { ChevronRight, ExternalLink, KeyRound, Laptop, ShieldAlert, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AuthUser, UserRole } from "@/entities/user/user.types";
@@ -60,9 +60,9 @@ export function AccountSettings({ user }: { user: AuthUser }) {
           </span>
           <div className="min-w-0 flex-1 space-y-1">
             <p className="truncate text-lg font-semibold">{user.name}</p>
-            <p className="flex items-center gap-2 truncate text-sm text-muted-foreground"><Mail className="size-4 shrink-0" />{user.email}</p>
+            <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+            {user.code && <p className="text-xs text-muted-foreground" title="Código público da conta">CUR-{user.code}</p>}
           </div>
-          <span className="border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{ROLE_LABELS[user.role]}</span>
         </CardContent>
       </Card>
 
