@@ -172,7 +172,7 @@ export default function LeafletMap({
           {occurrenceMarkers.map(renderOccurrenceMarker)}
         </MarkerClusterGroup>
 
-        {selectedOccurrence && (
+        {selectedOccurrence && Number.isFinite(selectedOccurrence.coordinates[0]) && Number.isFinite(selectedOccurrence.coordinates[1]) && (
           <CircleMarker
             center={[selectedOccurrence.coordinates[1], selectedOccurrence.coordinates[0]]}
             radius={16}

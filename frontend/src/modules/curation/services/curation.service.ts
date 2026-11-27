@@ -1,4 +1,4 @@
-import type { ArticleData, CuratedOccurrence, CurationFacets, CurationFilters, ExtractionDetail, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
+import type { ArticleData, CuratedOccurrence, CurationFacets, CurationFilters, SpecialtySelection, ExtractionDetail, SubmissionDetail, SubmissionPage } from "@/entities/submission/submission.types";
 import { ApiError, apiUrl, apiRequest } from "@/lib/apiClient";
 
 export const curationService = {
@@ -7,6 +7,13 @@ export const curationService = {
   },
   facets(status: CurationFilters["status"], signal?: AbortSignal) {
     return apiRequest<CurationFacets>("/api/curation/submissions/facetas", { params: { status }, signal });
+  },
+  /** The logged-in curator's saved specialty ("Minhas áreas"), stored in their account. */
+  specialty(signal?: AbortSignal) {
+    return apiRequest<SpecialtySelection>("/api/curation/especialidade", { signal });
+  },
+  saveSpecialty(selection: SpecialtySelection) {
+    return apiRequest<SpecialtySelection>("/api/curation/especialidade", { method: "PUT", body: selection });
   },
   get(id: number, signal?: AbortSignal) {
     return apiRequest<SubmissionDetail>(`/api/curation/submissions/${id}`, { signal });

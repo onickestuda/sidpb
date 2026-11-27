@@ -6,7 +6,8 @@ export function OccurrenceDetails({ occurrence }: { occurrence: Occurrence }) {
   const fields = [
     ["Cidade", occurrenceField(occurrence.city)],
     ["Estado", occurrenceField(occurrence.state)],
-    ["Coordenadas", `${occurrence.coordinates[1].toFixed(4)}, ${occurrence.coordinates[0].toFixed(4)}`],
+    ["Coordenadas", Number.isFinite(occurrence.coordinates[0]) && Number.isFinite(occurrence.coordinates[1])
+      ? `${occurrence.coordinates[1].toFixed(4)}, ${occurrence.coordinates[0].toFixed(4)}` : null],
     ["Doença", occurrenceField(occurrence.disease)],
     ["Data", formatOccurrenceDisplayDate(occurrence.date)],
     ["Hospedeiro", occurrenceField(occurrence.host)],

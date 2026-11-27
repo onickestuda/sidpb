@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { CurationFilters, SubmissionStatus } from "@/entities/submission/submission.types";
+import type { CurationFilters, SpecialtySelection, SubmissionStatus } from "@/entities/submission/submission.types";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { SubmissionTable } from "@/modules/submissions/components/SubmissionTable";
 import { curationService } from "../services/curation.service";
-import { EMPTY_SELECTION, SpecialtyFilters, loadMyAreas, type SpecialtySelection } from "./SpecialtyFilters";
+import { EMPTY_SELECTION, SpecialtyDialog } from "./SpecialtyDialog";
 
 export function CurationQueue() {
   const { user } = useAuth();
@@ -19,14 +19,23 @@ export function CurationQueue() {
     status: "PENDING", title: "", year: "", disease: "", from: "", to: "", page: 0, ...EMPTY_SELECTION,
   });
 
-  // Apply the curator's saved "Minhas áreas" once, when the account is known.
+  // The specialty saved in the curator's account is applied once, when it loads.
+  const queryClient = useQueryClient();
+  const saved = useQuery({ queryKey: ["curation", "specialty", user?.id], queryFn: ({ signal }) => curationService.specialty(signal),
+    enabled: Boolean(user), staleTime: Infinity });
   const appliedFor = useRef<number | null>(null);
   useEffect(() => {
-    if (!user || appliedFor.current === user.id) return;
+    if (!user || !saved.data || appliedFor.current === user.id) return;
     appliedFor.current = user.id;
-    const saved = loadMyAreas(user.id);
-    if (saved) setFilters((state) => ({ ...state, ...saved, page: 0 }));
-  }, [user]);
+    setFilters((state) => ({ ...state, ...saved.data, page: 0 }));
+  }, [user, saved.data]);
+  const saveSpecialty = useMutation({
+    mutationFn: (selection: SpecialtySelection) => curationService.saveSpecialty(selection),
+    onSuccess: (stored) => {
+      queryClient.setQueryData(["curation", "specialty", user?.id], stored);
+      setFilters((state) => ({ ...state, ...stored, page: 0 }));
+    },
+  });
 
   const query = useQuery({ queryKey: ["curation", "queue", filters], queryFn: ({ signal }) => curationService.list(filters, signal),
     staleTime: 0, refetchOnWindowFocus: true });
@@ -56,9 +65,11 @@ export function CurationQueue() {
           <TabsTrigger value="REJECTED">Reprovados</TabsTrigger>
         </TabsList>
       </Tabs>
-      <Button variant="outline" disabled={query.isFetching} onClick={() => { void query.refetch(); void facets.refetch(); }}>Atualizar fila</Button>
-      {user && <SpecialtyFilters userId={user.id} facets={facets.data} selection={selection}
-        onChange={(next) => setFilters(state => ({ ...state, ...next, page: 0 }))} />}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" disabled={query.isFetching} onClick={() => { void query.refetch(); void facets.refetch(); }}>Atualizar fila</Button>
+        <SpecialtyDialog facets={facets.data} selection={selection} saving={saveSpecialty.isPending}
+          onApply={(next) => saveSpecialty.mutateAsync(next)} />
+      </div>
       <form onSubmit={search} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2"><Label htmlFor="curation-search">Buscar artigo</Label><Input id="curation-search" name="title" maxLength={500} placeholder="Título do artigo..." /></div>
         <div className="space-y-2"><Label htmlFor="curation-year">Ano do artigo</Label><Input id="curation-year" name="year" type="number" min={1500} max={2100} /></div>

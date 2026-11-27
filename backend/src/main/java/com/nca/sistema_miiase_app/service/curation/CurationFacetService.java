@@ -23,6 +23,7 @@ public class CurationFacetService {
     public record Facets(List<Option> diseases, List<Option> vectors, List<Option> hosts, List<Option> states) { }
     /** Selected values per category; empty lists mean "no filter". */
     public record Selection(List<String> diseases, List<String> vectors, List<String> hosts, List<String> states) {
+        @com.fasterxml.jackson.annotation.JsonIgnore
         public boolean isEmpty() { return all(diseases).isEmpty() && all(vectors).isEmpty() && all(hosts).isEmpty() && all(states).isEmpty(); }
     }
 

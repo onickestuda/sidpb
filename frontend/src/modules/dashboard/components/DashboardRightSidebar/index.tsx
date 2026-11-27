@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Occurrence } from "@/entities/occurrence/occurrence.types";
 import { useMapStore } from "@/modules/map/store/mapStore";
 import { OccurrenceDetails } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceDetails";
-import { OccurrenceCurationNote, OccurrenceExtras } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceProvenance";
+import { OccurrenceExtras, OccurrenceStatusDots, OccurrenceStatusLegend } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceProvenance";
 import { OccurrenceSources } from "@/modules/occurrences/components/OccurrencePanel/OccurrenceSources";
 import {
   OCCURRENCES_PER_PAGE,
@@ -47,7 +47,10 @@ export function DashboardRightSidebar({ occurrences }: { occurrences: Occurrence
   function selectOccurrence(occurrence: Occurrence) {
     setSelectedOccurrence(occurrence);
     const map = useMapStore.getState().map;
-    const point: [number, number] = [occurrence.coordinates[1], occurrence.coordinates[0]];
+    const [lng, lat] = occurrence.coordinates;
+    // Occurrences without a confirmed location have no coordinates (NaN): nothing to pan to.
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    const point: [number, number] = [lat, lng];
     if (map && !map.getBounds().contains(point)) {
       map.panTo(point, { animate: true, duration: 0.3 });
     }
@@ -67,6 +70,7 @@ export function DashboardRightSidebar({ occurrences }: { occurrences: Occurrence
             <X className="size-4" aria-hidden="true" />
           </Button>
         </div>
+        <OccurrenceStatusLegend />
         {canSort && (
           <label className="flex items-center gap-2 text-xs text-muted-foreground">
             Ordenar:
@@ -95,8 +99,10 @@ export function DashboardRightSidebar({ occurrences }: { occurrences: Occurrence
                 aria-label={`Selecionar ocorrência ${occurrence.id}`}
                 onClick={() => selectOccurrence(occurrence)}
                 className="block w-full space-y-2 p-3 text-left hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-primary">
-                <h3 className="text-sm font-semibold">{occurrenceField(occurrence.disease) ?? `Ocorrência #${occurrence.id}`}</h3>
-                <OccurrenceCurationNote occurrence={occurrence} />
+                <h3 className="flex items-center gap-2 text-sm font-semibold">
+                  <span className="min-w-0">{occurrenceField(occurrence.disease) ?? `Ocorrência #${occurrence.id}`}</span>
+                  <OccurrenceStatusDots occurrence={occurrence} />
+                </h3>
                 <p className="text-xs text-muted-foreground">
                   {[occurrenceLocation(occurrence), formatOccurrenceDisplayDate(occurrence.date)].filter(Boolean).join(" · ")}
                 </p>

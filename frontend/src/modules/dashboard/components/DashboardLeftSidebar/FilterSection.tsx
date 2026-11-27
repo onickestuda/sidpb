@@ -9,6 +9,9 @@ interface FilterSectionProps {
   defaultOpen?: boolean;
   /** Number of selected options; shown as a badge so filters are visible while collapsed. */
   activeCount?: number;
+  /** Controlled mode (e.g. a search that opens every section); omit to let the section manage itself. */
+  open?: boolean;
+  onOpenChange?(open: boolean): void;
 }
 
 export function FilterSection({
@@ -16,8 +19,16 @@ export function FilterSection({
   children,
   defaultOpen = false,
   activeCount = 0,
+  open: controlledOpen,
+  onOpenChange,
 }: FilterSectionProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (update: (current: boolean) => boolean) => {
+    const next = update(open);
+    if (onOpenChange) onOpenChange(next);
+    if (controlledOpen === undefined) setUncontrolledOpen(next);
+  };
   const contentId = useId();
 
   return (

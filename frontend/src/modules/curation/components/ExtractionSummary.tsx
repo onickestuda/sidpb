@@ -3,7 +3,7 @@ import type { ExtractionDetail, ExtractionQuality } from "@/entities/submission/
 /** Short warning only when the extraction could not be read completely. */
 const WARNINGS: Partial<Record<ExtractionQuality, { text: string; tone: string }>> = {
   PARCIAL: { text: "Leitura parcial: pode haver dados faltando.", tone: "border-amber-300 bg-amber-50 text-amber-900" },
-  ILEGIVEL: { text: "Extração com falha: registre a partir da fonte.", tone: "border-destructive/40 bg-destructive/5 text-destructive" },
+  ILEGIVEL: { text: "Extração automática com falha: registre a partir da fonte.", tone: "border-destructive/40 bg-destructive/5 text-destructive" },
 };
 
 export function ExtractionSummary({ extraction }: { extraction: ExtractionDetail }) {

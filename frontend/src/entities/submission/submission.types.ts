@@ -113,6 +113,9 @@ export interface CurationFilters {
   states?: string[];
 }
 
+/** Saved specialty of the curator (per account): filters applied to the curation queue. */
+export interface SpecialtySelection { diseases: string[]; vectors: string[]; hosts: string[]; states: string[]; }
+
 export interface CurationFacetOption { label: string; count: number; }
 export interface CurationFacets {
   diseases: CurationFacetOption[]; vectors: CurationFacetOption[]; hosts: CurationFacetOption[]; states: CurationFacetOption[];

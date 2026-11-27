@@ -1,4 +1,3 @@
-import { CircleHelp, MapPinOff, MapPinned, MapPin, type LucideIcon } from "lucide-react";
 import type { Occurrence } from "@/entities/occurrence/occurrence.types";
 
 type ProvenanceOccurrence = Pick<Occurrence, "curation" | "locationPrecision" | "extractionModel" | "extras" | "state" | "city">;
@@ -11,46 +10,47 @@ export const LOCATION_SEALS: Record<Occurrence["locationPrecision"], string> = {
   SEM_LOCAL: "Sem local confirmado",
 };
 
-interface SealBadge {
-  id: string;
-  label: string;
-  tooltip: string;
-  icon: LucideIcon;
-  tone: string;
+/** Traffic-light states of an occurrence: one dot for curation, one for location precision. */
+export const STATUS_DOTS = {
+  curada: { label: "Curada", tooltip: "Verificada por um curador.", color: "bg-green-600" },
+  naoCurada: { label: "Não curada", tooltip: "Extraída automaticamente e ainda não verificada por um curador.", color: "bg-red-600" },
+  exata: { label: "Localização exata", tooltip: LOCATION_SEALS.EXATA, color: "bg-blue-600" },
+  aproximada: { label: "Localização aproximada", tooltip: "Localização aproximada (município ou estado), sem coordenadas exatas.", color: "bg-yellow-400" },
+  semLocal: { label: "Sem localização", tooltip: LOCATION_SEALS.SEM_LOCAL, color: "bg-orange-700" },
+} as const;
+type StatusDot = keyof typeof STATUS_DOTS;
+
+const LOCATION_DOT: Record<Occurrence["locationPrecision"], StatusDot> = {
+  EXATA: "exata", MUNICIPIO: "aproximada", ESTADO: "aproximada", SEM_LOCAL: "semLocal",
+};
+
+function Dot({ status }: { status: StatusDot }) {
+  const { label, tooltip, color } = STATUS_DOTS[status];
+  return (
+    <span title={`${label}: ${tooltip}`} className={`inline-block size-2.5 shrink-0 rounded-full ${color}`}>
+      <span className="sr-only">{label}</span>
+    </span>
+  );
 }
 
-/**
- * Exception badges: only what calls for caution is shown, so curated occurrences with an exact location
- * stay clean. To add a new badge, add one rule here; the layout does not change.
- */
-const SEAL_RULES: ((occurrence: ProvenanceOccurrence) => SealBadge | null)[] = [
-  (occurrence) => occurrence.curation === "NAO_CURADA" ? {
-    id: "nao-curada", label: "Não curada", icon: CircleHelp,
-    tooltip: "Extraída automaticamente e ainda não verificada por um curador.",
-    tone: "border-amber-300 bg-amber-50 text-amber-900",
-  } : null,
-  (occurrence) => ({
-    EXATA: null,
-    MUNICIPIO: { id: "loc-aproximada", label: "Loc. aproximada", icon: MapPinned, tooltip: LOCATION_SEALS.MUNICIPIO,
-      tone: "border-blue-300 bg-blue-50 text-blue-900" },
-    ESTADO: { id: "so-estado", label: "Só estado", icon: MapPin, tooltip: LOCATION_SEALS.ESTADO,
-      tone: "border-sky-300 bg-sky-50 text-sky-900" },
-    SEM_LOCAL: { id: "sem-local", label: "Sem local", icon: MapPinOff, tooltip: LOCATION_SEALS.SEM_LOCAL,
-      tone: "border-slate-300 bg-slate-100 text-slate-700" },
-  } satisfies Record<Occurrence["locationPrecision"], SealBadge | null>)[occurrence.locationPrecision],
-];
-
-/** Mini badges side by side (curation, location precision...) on every occurrence card. */
-export function OccurrenceCurationNote({ occurrence }: { occurrence: ProvenanceOccurrence }) {
-  const badges = SEAL_RULES.map((rule) => rule(occurrence)).filter((badge): badge is SealBadge => badge !== null);
-  if (badges.length === 0) return null;
+/** Curation and location dots, shown inline next to the occurrence title. */
+export function OccurrenceStatusDots({ occurrence }: { occurrence: ProvenanceOccurrence }) {
   return (
-    <ul className="flex flex-wrap gap-1.5" aria-label="Selos da ocorrência">
-      {badges.map(({ id, label, tooltip, icon: Icon, tone }) => (
-        <li key={id} title={tooltip}
-          className={`inline-flex items-center gap-1 rounded-[2px] border px-1.5 py-0.5 text-[11px] font-medium leading-tight ${tone}`}>
-          <Icon className="size-3 shrink-0" aria-hidden />{label}
-          <span className="sr-only">: {tooltip}</span>
+    <span className="inline-flex items-center gap-1" aria-label="Situação da ocorrência">
+      <Dot status={occurrence.curation === "NAO_CURADA" ? "naoCurada" : "curada"} />
+      <Dot status={LOCATION_DOT[occurrence.locationPrecision]} />
+    </span>
+  );
+}
+
+/** Compact legend of the dots. */
+export function OccurrenceStatusLegend() {
+  return (
+    <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground" aria-label="Legenda">
+      {(Object.keys(STATUS_DOTS) as StatusDot[]).map((status) => (
+        <li key={status} className="inline-flex items-center gap-1">
+          <span aria-hidden className={`inline-block size-2.5 rounded-full ${STATUS_DOTS[status].color}`} />
+          {STATUS_DOTS[status].label}
         </li>
       ))}
     </ul>
@@ -110,10 +110,10 @@ export function OccurrenceExtras({ extras }: { extras: Record<string, unknown> }
           ))}
         </dl>
       )}
-      {flags && <p className="text-xs text-amber-900">Alertas da extração: {flags}</p>}
+      {flags && <p className="text-xs text-amber-900">Alertas da extração automática: {flags}</p>}
       {evidence.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium">Trechos do artigo usados na extração</p>
+          <p className="text-xs font-medium">Trechos do artigo usados na extração automática</p>
           {evidence.map((item, index) => (
             <blockquote key={index} className="border-l-2 border-primary/40 pl-2 text-xs text-muted-foreground">
               <p className="whitespace-pre-wrap break-words">{item.text}</p>
