@@ -73,21 +73,21 @@ public class CurationFacetService {
     }
 
     /**
-     * Submissions matching the selection: any selected value within a category, every category with a
-     * selection. Null when nothing is selected (no restriction).
+     * Submissions matching the selection, inclusively: a submission matches if it has ANY selected value, in
+     * any category ("dengue" or "miíase" or "humano" shows all of them). Null when nothing is selected (no
+     * restriction); an empty set when nothing matches.
      */
     public Set<Integer> matching(Selection selection) {
         if (selection == null || selection.isEmpty()) return null;
-        Set<Integer> result = null;
+        Set<Integer> result = new HashSet<>();
         Map<String, List<String>> categories = Map.of("disease", all(selection.diseases()), "vector", all(selection.vectors()),
                 "host", all(selection.hosts()), "state", all(selection.states()));
         for (var category : categories.entrySet()) {
             if (category.getValue().isEmpty()) continue;
             String[] values = category.getValue().stream().map(value -> value.strip().toLowerCase(Locale.ROOT)).toArray(String[]::new);
-            Set<Integer> ids = new HashSet<>(jdbc.queryForList(FACETS + """
+            result.addAll(jdbc.queryForList(FACETS + """
                     SELECT DISTINCT f.id FROM f WHERE f.k = ? AND f.v IS NOT NULL AND LOWER(TRIM(f.v)) = ANY (?)""",
                     Integer.class, category.getKey(), values));
-            if (result == null) result = ids; else result.retainAll(ids);
         }
         return result;
     }

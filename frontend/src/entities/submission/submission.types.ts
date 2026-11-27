@@ -106,7 +106,7 @@ export interface CurationFilters {
   from: string;
   to: string;
   page: number;
-  /** Specialty filters (any value within a category, every category with a selection). */
+  /** Specialty filters, inclusive: a submission shows if it matches any selected value in any category. */
   diseases?: string[];
   vectors?: string[];
   hosts?: string[];
