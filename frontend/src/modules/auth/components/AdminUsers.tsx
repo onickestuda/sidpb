@@ -111,7 +111,7 @@ function UserList({ team=false }: { team?: boolean }) {
     return ()=>controller.abort();
   },[first,query,profile,status,revision,team]);
   return <div className="space-y-5">
-    {team && <div className="flex flex-wrap items-center justify-between gap-3 border bg-card p-4"><p>Curadores e administradores podem avaliar submissões. As contagens mostram avaliações registradas no SIDPB.</p><Button asChild variant="outline"><Link href="/curador">Abrir curadoria</Link></Button></div>}
+    {team && <div className="flex justify-end"><Button asChild variant="outline"><Link href="/curador">Abrir curadoria</Link></Button></div>}
     <form className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-4" onSubmit={e=>{e.preventDefault();setCursors([0]);setQuery(search);setRevision(v=>v+1);}}>
       <label className="text-sm font-medium">Nome ou e-mail<Input placeholder="Pesquisar pessoas" value={search} maxLength={200} onChange={e=>setSearch(e.target.value)} /></label>
       <label className="text-sm font-medium">Perfil<select className={selectClass} value={profile} onChange={e=>{setProfile(e.target.value);setCursors([0]);}}><option value="">Todos os perfis</option>{Object.entries(labels).filter(([key])=>!team || key!=="USER").map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>

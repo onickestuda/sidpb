@@ -21,7 +21,8 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="grid h-16 grid-cols-[18rem_minmax(0,1fr)_24rem] items-center border-b border-border bg-background">
+    <header className="grid h-16 grid-cols-[15rem_minmax(0,1fr)_auto] items-center border-b border-border bg-background">
+      {/* First column = the left sidebar width (w-60), so the search box lines up with the map. */}
       <div className="flex items-center px-6">
         <Link href="/dashboard" aria-label="SIDPB: ir para o mapa">
           <Image
@@ -34,7 +35,7 @@ export function DashboardHeader() {
         </Link>
       </div>
 
-      <div className="flex justify-center px-6">
+      <div className="flex justify-center px-4">
         <div className="w-full max-w-3xl">
           <SearchForm
             initialValue={search}
@@ -44,10 +45,10 @@ export function DashboardHeader() {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 px-6">
+      <div className="flex items-center justify-end gap-3 px-4">
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="hidden items-center gap-2 whitespace-nowrap text-sm font-medium text-muted-foreground transition-colors hover:text-foreground lg:flex"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar para início

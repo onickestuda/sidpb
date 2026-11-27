@@ -28,16 +28,19 @@ export function LoginWallCard() {
       <Button asChild className="h-11 w-full"><Link href="/dashboard">Acessar o mapa <ArrowRight className="size-4" /></Link></Button>
       {isInitializing && <p role="status">Restaurando sessão...</p>}
       {user && <Button asChild variant="outline" className="w-full"><Link href={ROLE_ROUTES[user.role]}>Voltar para minha área</Link></Button>}
-      <div className="space-y-2 border-t pt-4 text-center"><h1 className="text-lg font-semibold">Entre na sua conta</h1><p className="text-sm text-muted-foreground">Submeta artigos e acompanhe suas avaliações.</p></div>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       {deletionRequested && <p role="status">Pedido de exclusão recebido. Seu acesso foi encerrado; a remoção dos dados pessoais será concluída pelo serviço.</p>}
-      {([['login', 'Continuar com e-mail'], ['google', 'Continuar com Google']] as const).map(([action, label]) =>
-        <form key={action} method="post" action={`${AUTH_BASE}/${action}/`}>
-          <Button type="submit" variant="outline" className="h-11 w-full">{label}</Button>
-        </form>)}
-      <form method="post" action={`${AUTH_BASE}/register/`} className="text-center text-sm">
-        Ainda não tem uma conta?{" "}<button type="submit" role="link" className="font-medium text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">Cadastre-se</button>
-      </form>
+      {/* Sign-in options only for visitors: a logged-in user already has "Voltar para minha área". */}
+      {!user && !isInitializing && <>
+        <div className="space-y-2 border-t pt-4 text-center"><h1 className="text-lg font-semibold">Entre na sua conta</h1><p className="text-sm text-muted-foreground">Submeta artigos e acompanhe suas avaliações.</p></div>
+        {([['login', 'Continuar com e-mail'], ['google', 'Continuar com Google']] as const).map(([action, label]) =>
+          <form key={action} method="post" action={`${AUTH_BASE}/${action}/`}>
+            <Button type="submit" variant="outline" className="h-11 w-full">{label}</Button>
+          </form>)}
+        <form method="post" action={`${AUTH_BASE}/register/`} className="text-center text-sm">
+          Ainda não tem uma conta?{" "}<button type="submit" role="link" className="font-medium text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">Cadastre-se</button>
+        </form>
+      </>}
     </CardContent>
   </Card>;
 }

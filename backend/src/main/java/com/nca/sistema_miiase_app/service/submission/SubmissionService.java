@@ -127,9 +127,10 @@ public class SubmissionService {
             if (userId != null) predicates.add(cb.equal(root.get("usuario").get("id"), userId));
             if (onlyIds != null) predicates.add(onlyIds.isEmpty() ? cb.disjunction() : root.get("id").in(onlyIds));
             if (status != null) predicates.add(cb.equal(root.get("status"), status));
-            if (title != null && !title.isBlank()) predicates.add(cb.like(cb.lower(root.get("titulo")), contains(title), '\\'));
+            // Case- and accent-insensitive, like the map search: "miiase" finds "Miíase".
+            if (title != null && !title.isBlank()) predicates.add(cb.like(folded(cb, root.<String>get("titulo")), contains(title), '\\'));
             if (year != null) predicates.add(cb.equal(root.get("ano"), year));
-            if (disease != null && !disease.isBlank()) predicates.add(cb.like(cb.lower(root.get("doenca")), contains(disease), '\\'));
+            if (disease != null && !disease.isBlank()) predicates.add(cb.like(folded(cb, root.<String>get("doenca")), contains(disease), '\\'));
             ZoneId timezone = ZoneId.of("America/Sao_Paulo");
             if (from != null) predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), from.atStartOfDay(timezone).toInstant()));
             if (to != null) predicates.add(cb.lessThan(root.get("createdAt"), to.plusDays(1).atStartOfDay(timezone).toInstant()));
@@ -205,8 +206,22 @@ public class SubmissionService {
 
     private PersonDto person(Usuario user) { return PersonDto.of(user); }
 
+    private static final String ACCENTED = "áàâãäéèêëíìîïóòôõöúùûüçñ";
+    private static final String PLAIN = "aaaaaeeeeiiiiooooouuuucn";
+
+    /** lower() + accents removed in the database, matching fold() on the search text. */
+    private static jakarta.persistence.criteria.Expression<String> folded(
+            jakarta.persistence.criteria.CriteriaBuilder cb, jakarta.persistence.criteria.Expression<String> column) {
+        return cb.function("translate", String.class, cb.lower(column), cb.literal(ACCENTED), cb.literal(PLAIN));
+    }
+
+    static String fold(String input) {
+        return java.text.Normalizer.normalize(input.strip().toLowerCase(Locale.ROOT), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+    }
+
     private String contains(String input) {
-        return "%" + input.strip().toLowerCase(Locale.ROOT).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        return "%" + fold(input).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
     }
 
     /** The title is optional: fall back to the PDF name (without .pdf), then the link, so the queue never shows a blank title. */

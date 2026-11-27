@@ -18,6 +18,10 @@ class SubmissionTitleTest {
         assertThat(SubmissionService.displayTitle(null, null, "https://doi.org/10.1/abc")).isEqualTo("https://doi.org/10.1/abc");
     }
 
+    @Test void buscaIgnoraAcentoEMaiusculas() {
+        assertThat(SubmissionService.fold("  Miíase OFTALMOMIÍASE Ação ")).isEqualTo("miiase oftalmomiiase acao");
+    }
+
     @Test void nadaInformadoViraSemTitulo() {
         assertThat(SubmissionService.displayTitle(null, ".pdf", null)).isEqualTo("Sem título");
     }

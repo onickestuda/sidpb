@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import type { Occurrence, OccurrenceProperties } from "@/entities/occurrence/occurrence.types";
 import { CURATION_LABELS, UNLOCATED_LABEL } from "@/entities/occurrence/occurrence.types";
+import { occurrenceField } from "@/modules/occurrences/utils/occurrence-presentation";
 
 export interface DashboardFilterOption {
   label: string;
@@ -24,7 +25,8 @@ function createOptions(
   const counts = new Map<string, number>();
 
   values.forEach((value) => {
-    if (!value?.trim()) return;
+    // Placeholders for absent data ("Não informado", "-") are not filter options.
+    if (!occurrenceField(value)) return;
 
     counts.set(
       value,

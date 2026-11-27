@@ -26,7 +26,7 @@ export function SubmissionOverview({ submission: s, pdfUrl, showSuggestions, sho
           {s.originalLink && <Button asChild><a href={s.originalLink} target="_blank" rel="noopener noreferrer">Abrir artigo original</a></Button>}
           {s.pdfName && <Button asChild variant="outline"><a href={pdfUrl} target="_blank" rel="noopener noreferrer">Visualizar PDF</a></Button>}
           {s.pdfName && <span className="self-center break-all text-sm text-muted-foreground">{s.pdfName} · {formatFileSize(s.pdfSize ?? 0)}</span>}
-          {s.origin === "EXTRACAO" && <span className="self-center text-sm text-muted-foreground">Recebida do pipeline de extração automática · sem PDF anexado</span>}
+          {s.origin === "EXTRACAO" && <span className="self-center text-sm text-muted-foreground">Extração automática · sem PDF anexado</span>}
         </CardContent>
       </Card>
       {showSourceData && <Card><CardHeader><CardTitle><h3>Dados da fonte</h3></CardTitle></CardHeader>
